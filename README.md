@@ -1,32 +1,4 @@
-#### [腾讯云2019新春采购节](https://cloud.tencent.com/redirect.php?redirect=1036&cps_key=30280f92fc381dfc9e1d9e0e23d25a18&from=console)：
-【开年好云 钜惠来袭】2019新春采购节，30款云产品感恩回馈。
-[![腾讯云2019新春采购节](https://platform-wxmall.oss-cn-beijing.aliyuncs.com/active/tx/520_120.jpg)](https://cloud.tencent.com/redirect.php?redirect=1036&cps_key=30280f92fc381dfc9e1d9e0e23d25a18&from=console)
-
-#### [阿里云开年采购季](https://www.aliyun.com/acts/product-section-2019/new-users?userCode=i8s6n64p)：
-入门爆款云服务器，降低采购成本，开发者和小微企业首选。
-[![阿里云开年采购季](https://platform-wxmall.oss-cn-beijing.aliyuncs.com/active/ali/540x250.jpg)](https://www.aliyun.com/acts/product-section-2019/new-users?userCode=i8s6n64p)
-
-# 微信小程序商城（Java版）
-
-## 获得荣誉
-### 1000+stars
-![](https://platform-wxmall.oss-cn-beijing.aliyuncs.com/1000stars.jpg "1000+stars")
-
-### GVP
-![](
-https://platform-wxmall.oss-cn-beijing.aliyuncs.com/GVP.jpg "GVP")
-
-## 官方首页
-* [演示地址](http://fly2you.cn)
-* [最新开发文档](http://fly2you.cn/guide/index)
-
-* 官方QQ群：<a target="_blank" href="//shang.qq.com/wpa/qunwpa?idkey=2d02d83d8be4c2cb6848bbae1df1037ba2acddecd2a1aa8cef7b3e4ab4ff75aa"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="platform-wechat-mall ①群" title="platform-wechat-mall ①群"></a><a target="_blank" href="//shang.qq.com/wpa/qunwpa?idkey=990a15d445ef791dba99d22d9772c06ac7894ffa6ac639b1eec530554c432583"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="platform-wechat-mall ②群" title="platform-wechat-mall ②群"></a>
-* git：[https://gitee.com/fuyang_lipengjun/platform](https://gitee.com/fuyang_lipengjun/platform)
-* 基础架构版
-    * git：[https://gitee.com/fuyang_lipengjun/platform-framework](https://gitee.com/fuyang_lipengjun/platform-framework)
-* 代码生成工具IDEA插件
-    * git：[https://gitee.com/fuyang_lipengjun/platform-gen](https://gitee.com/fuyang_lipengjun/platform-gen)
-     
+    
 ## 技术选型
 * 1 后端使用技术
     * 1.1 springframework4.3.7.RELEASE
