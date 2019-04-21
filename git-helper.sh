@@ -243,7 +243,7 @@ git_add(){
     add_files=$( \
 	   git status -s| \
 	   awk '((substr($0, 1, 1)=="?" && substr($0, 2, 1)=="?") || (substr($0, 1, 1)==" " && substr($0, 2, 1)=="M") || (substr($0, 1, 1)=="A" && substr($0, 2, 1)==" ")) \
-	       && $0~/\.java$|\.xml$|\.sh$|\.json$/ \
+	       && $0~/\.java$|\.xml$|\.sh$|\.json$|\.html$|\.css$|\.js$/ \
 	       {print substr($0, 4, length - 4 + 1)}' \
        )
 
