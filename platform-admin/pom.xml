@@ -13,6 +13,7 @@
     <description>管理后台</description>
 
     <dependencies>
+
         <dependency>
             <groupId>com.platform</groupId>
             <artifactId>platform-common</artifactId>
