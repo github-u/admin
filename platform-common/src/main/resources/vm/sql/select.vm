@@ -1,0 +1,27 @@
+select 
+#foreach( ${__column} in ${__columns})
+#if(${foreach.last})
+	${__column.name.name}
+#else
+	${__column.name.name},
+#end	
+#end
+from
+	${__table_name}   
+where
+	1 = 1
+#foreach(${__condition} in ${__conditions.entrySet()})
+#if(${__condition.key.dataType.name} == 'bigint')	
+	and ${__condition.key.name.name} = ${__condition.value}
+#elseif(${__condition.key.dataType.name} == 'varchar')	
+	and ${__condition.key.name.name} like "%${__condition.value}%"
+#elseif(${__condition.key.dataType.name} == 'datetime')
+#if("$!{__condition.value.start}" != "") 
+	and ${__condition.key.name.name} >= "$!{__condition.value.start}"
+#end
+#if("$!{__condition.value.end}" != "")
+	and ${__condition.key.name.name} <= "$!{__condition.value.end}"
+#end
+#end	
+#end
+limit ${__start}, ${__limit}
