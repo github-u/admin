@@ -21,13 +21,11 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
-import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateTableStatement;
 import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlOutputVisitor;
 import com.platform.entity.ResultSupport;
 import com.platform.service.SQLService;
-import com.platform.utils.Pair;
 
 public class SQLServiceImpl implements SQLService {
     
@@ -56,57 +54,11 @@ public class SQLServiceImpl implements SQLService {
     @Override
     public ResultSupport<String> getSelect(String tableName, Map<String, Object> params) {
         
-        MySqlCreateTableStatement mySqlCreateTableStatement = createTableDDLSQLStatements.get(tableName);
+        List<SQLColumnDefinition> tableColumnElements = getTableColumnElements(tableName);
         
-        List<SQLColumnDefinition> tableColumnElements = 
-                mySqlCreateTableStatement.getTableElementList()
-                .stream()
-                .filter(tableColumnElement -> tableColumnElement instanceof SQLColumnDefinition)
-                .map(tableColumnElement -> (SQLColumnDefinition)tableColumnElement)
-                .collect(Collectors.toList());
+        Map<SQLColumnDefinition, Object> tableCoditionMap = getTableCodition(tableColumnElements, params);
         
-        Map<SQLColumnDefinition, Object> tableCoditionMap = 
-                tableColumnElements
-                .stream()
-                .filter(tableColumnElement -> {
-                    if(Constans.DateTimeType.equals(tableColumnElement.getDataType().getName())) {
-                        return params.containsKey(tableColumnElement.getName().getSimpleName() + Constans.DateTimeStartSuffix)
-                                || params.containsKey(tableColumnElement.getName().getSimpleName() + Constans.DateTimeEndSuffix);
-                    }else {
-                        return params.containsKey(tableColumnElement.getName().getSimpleName());
-                    }
-                })
-                .collect(Collector.of(
-                                ()->{
-                                    Map<SQLColumnDefinition, Object> s = new LinkedHashMap<SQLColumnDefinition, Object>();
-                                    return s;
-                                },
-                                (s, e)->{
-                                    if(Constans.DateTimeType.equals(e.getDataType().getName())) {
-                                        s.put(e, new DateValue(
-                                                params.get(e.getName().getSimpleName() + Constans.DateTimeStartSuffix),
-                                                params.get(e.getName().getSimpleName() + Constans.DateTimeEndSuffix)
-                                                ));
-                                    }else {
-                                        s.put(e, params.get(e.getName().getSimpleName()));
-                                    }
-                                }, 
-                                (s1, s2)->{
-                                    s1.putAll(s2);
-                                    return s1;
-                                },
-                                Collector.Characteristics.IDENTITY_FINISH
-                                )
-                );
-        
-        VelocityContext velocityContext = new VelocityContext();
-        velocityContext.put(VelocityContextKey.TableName, tableName);
-        velocityContext.put(VelocityContextKey.Columns, tableColumnElements);
-        velocityContext.put(VelocityContextKey.Conditions, tableCoditionMap);
-        velocityContext.put(VelocityContextKey.Start, 
-                params.get(VelocityContextKey.Start) != null ? params.get(VelocityContextKey.Start) : Constans.DefaultStart);
-        velocityContext.put(VelocityContextKey.Limit, 
-                params.get(VelocityContextKey.Limit) != null ? params.get(VelocityContextKey.Limit) : Constans.DefaultLimit);
+        VelocityContext velocityContext = getSelectVelocityContext(tableName, tableColumnElements, tableCoditionMap, params);
         
         return templateSql(Constans.DefaultSelectVmPath, velocityContext);
         
@@ -114,20 +66,39 @@ public class SQLServiceImpl implements SQLService {
 
     @Override
     public ResultSupport<String> getUpdate(String tableName, Map<String, Object> params) {
-        // TODO Auto-generated method stub
-        return null;
+        
+        List<SQLColumnDefinition> tableColumnElements = getTableColumnElements(tableName);
+        
+        Map<SQLColumnDefinition, Object> tableUpdateColumnMap = getTableUpdateColumn(tableColumnElements, params);
+        
+        VelocityContext velocityContext = getUpdateVelocityContext(tableName, tableColumnElements, tableUpdateColumnMap, params);
+        
+        return templateSql(Constans.DefaultUpdateVmPath, velocityContext);
+        
     }
 
     @Override
     public ResultSupport<String> getInsert(String tableName, Map<String, Object> params) {
-        // TODO Auto-generated method stub
-        return null;
+        
+        List<SQLColumnDefinition> tableColumnElements = getTableColumnElements(tableName);
+        
+        Map<SQLColumnDefinition, Object> tableInsertColumnMap = getTableInsertColumn(tableColumnElements, params);
+        
+        VelocityContext velocityContext = getInsertVelocityContext(tableName, tableColumnElements, tableInsertColumnMap, params);
+        
+        return templateSql(Constans.DefaultInsertVmPath, velocityContext);
+        
     }
 
     @Override
     public ResultSupport<String> getDelete(String tableName, Map<String, Object> params) {
-        // TODO Auto-generated method stub
-        return null;
+        
+        Map<String, Object> tParams = new HashMap<String, Object>();
+        tParams.put(PreSetColumn.Id, get(PreSetColumn.Id, params));
+        tParams.put(PreSetColumn.Status, Constans.DeleteStatus);
+        
+        return getUpdate(tableName, tParams);
+        
     }
     
     public void init() throws Exception {
@@ -182,8 +153,175 @@ public class SQLServiceImpl implements SQLService {
         return ret.success((MySqlCreateTableStatement) sqlStatements.get(0));
     }
     
+    private List<SQLColumnDefinition> getTableColumnElements(String tableName) {
+        
+        MySqlCreateTableStatement mySqlCreateTableStatement = createTableDDLSQLStatements.get(tableName);
+        
+        List<SQLColumnDefinition> tableColumnElements = 
+                mySqlCreateTableStatement.getTableElementList()
+                .stream()
+                .filter(tableColumnElement -> tableColumnElement instanceof SQLColumnDefinition)
+                .map(tableColumnElement -> (SQLColumnDefinition)tableColumnElement)
+                .collect(Collectors.toList());
+        
+        return tableColumnElements;
+        
+    }
+    
+    private Map<SQLColumnDefinition, Object> getTableCodition(List<SQLColumnDefinition> tableColumnElements, Map<String, Object> params) {
+        Map<SQLColumnDefinition, Object> tableCoditionMap = 
+                tableColumnElements
+                .stream()
+                .filter(tableColumnElement -> {
+                    if(Constans.DateTimeType.equals(tableColumnElement.getDataType().getName())) {
+                        return contains(tableColumnElement.getName().getSimpleName() + Constans.DateTimeStartSuffix, params)
+                                || contains(tableColumnElement.getName().getSimpleName() + Constans.DateTimeEndSuffix, params);
+                    }else {
+                        return contains(tableColumnElement.getName().getSimpleName(), params);
+                    }
+                })
+                .collect(Collector.of(
+                                ()->{
+                                    Map<SQLColumnDefinition, Object> s = new LinkedHashMap<SQLColumnDefinition, Object>();
+                                    return s;
+                                },
+                                (s, e)->{
+                                    if(Constans.DateTimeType.equals(e.getDataType().getName())) {
+                                        s.put(e, new DateValue(
+                                                get(e.getName().getSimpleName() + Constans.DateTimeStartSuffix, params),
+                                                get(e.getName().getSimpleName() + Constans.DateTimeEndSuffix, params)
+                                                ));
+                                    }else {
+                                        s.put(e, get(e.getName().getSimpleName(), params));
+                                    }
+                                }, 
+                                (s1, s2)->{
+                                    s1.putAll(s2);
+                                    return s1;
+                                },
+                                Collector.Characteristics.IDENTITY_FINISH
+                                )
+                );
+        
+        return tableCoditionMap;
+    }
+    
+    private Map<SQLColumnDefinition, Object> getTableUpdateColumn(List<SQLColumnDefinition> tableColumnElements, Map<String, Object> params) {
+        Map<SQLColumnDefinition, Object> tableUpdateColumnMap = 
+                tableColumnElements
+                .stream()
+                .filter(tableColumnElement -> {
+                        return contains(tableColumnElement.getName().getSimpleName(), params);
+                })
+                .collect(Collector.of(
+                                ()->{
+                                    Map<SQLColumnDefinition, Object> s = new LinkedHashMap<SQLColumnDefinition, Object>();
+                                    return s;
+                                },
+                                (s, e)->{
+                                    s.put(e, get(e.getName().getSimpleName(), params));
+                                }, 
+                                (s1, s2)->{
+                                    s1.putAll(s2);
+                                    return s1;
+                                },
+                                Collector.Characteristics.IDENTITY_FINISH
+                                )
+                );
+        return tableUpdateColumnMap;
+    }
+    
+    private Map<SQLColumnDefinition, Object> getTableInsertColumn(List<SQLColumnDefinition> tableColumnElements, Map<String, Object> params) {
+        Map<SQLColumnDefinition, Object> tableUpdateColumnMap = 
+                tableColumnElements
+                .stream()
+                .collect(Collector.of(
+                                ()->{
+                                    Map<SQLColumnDefinition, Object> s = new LinkedHashMap<SQLColumnDefinition, Object>();
+                                    return s;
+                                },
+                                (s, e)->{
+                                    s.put(e, get(e.getName().getSimpleName(), params));
+                                }, 
+                                (s1, s2)->{
+                                    s1.putAll(s2);
+                                    return s1;
+                                },
+                                Collector.Characteristics.IDENTITY_FINISH
+                                )
+                );
+        return tableUpdateColumnMap;
+    }
+    
+    private VelocityContext getSelectVelocityContext(String tableName, List<SQLColumnDefinition> tableColumnElements, 
+            Map<SQLColumnDefinition, Object> tableCoditionMap, Map<String, Object> params) {
+        VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put(VelocityContextKey.TableName, tableName);
+        velocityContext.put(VelocityContextKey.Columns, tableColumnElements);
+        velocityContext.put(VelocityContextKey.Conditions, tableCoditionMap);
+        velocityContext.put(VelocityContextKey.Start, 
+                params.get(VelocityContextKey.Start) != null ? get(VelocityContextKey.Start, params) : Constans.DefaultStart);
+        velocityContext.put(VelocityContextKey.Limit, 
+                params.get(VelocityContextKey.Limit) != null ? get(VelocityContextKey.Limit, params) : Constans.DefaultLimit);
+        return velocityContext;
+    }
+    
+    private VelocityContext getUpdateVelocityContext(String tableName, List<SQLColumnDefinition> tableColumnElements, 
+            Map<SQLColumnDefinition, Object> tableUpdateColumnMap, Map<String, Object> params) {
+        VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put(VelocityContextKey.TableName, tableName);
+        velocityContext.put(VelocityContextKey.Columns, tableColumnElements);
+        velocityContext.put(VelocityContextKey.UpdateColumns, tableUpdateColumnMap);
+        velocityContext.put(VelocityContextKey.Start, 
+                params.get(VelocityContextKey.Start) != null ? get(VelocityContextKey.Start, params) : Constans.DefaultStart);
+        velocityContext.put(VelocityContextKey.Limit, 
+                params.get(VelocityContextKey.Limit) != null ? get(VelocityContextKey.Limit, params) : Constans.DefaultLimit);
+        velocityContext.put(PreSetColumn.Id, 
+                params.get(PreSetColumn.Id) != null ? get(PreSetColumn.Id, params) : Constans.DefaultRowId);
+        return velocityContext;
+    }
+    
+    private VelocityContext getInsertVelocityContext(String tableName, List<SQLColumnDefinition> tableColumnElements, 
+            Map<SQLColumnDefinition, Object> tableInsertColumnMap, Map<String, Object> params) {
+        VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put(VelocityContextKey.TableName, tableName);
+        velocityContext.put(VelocityContextKey.Columns, tableColumnElements);
+        velocityContext.put(VelocityContextKey.InsertColumns, tableInsertColumnMap);
+        velocityContext.put(VelocityContextKey.Start, 
+                params.get(VelocityContextKey.Start) != null ? get(VelocityContextKey.Start, params) : Constans.DefaultStart);
+        velocityContext.put(VelocityContextKey.Limit, 
+                params.get(VelocityContextKey.Limit) != null ? get(VelocityContextKey.Limit, params) : Constans.DefaultLimit);
+        velocityContext.put(PreSetColumn.Id, 
+                params.get(PreSetColumn.Id) != null ? get(PreSetColumn.Id, params) : Constans.DefaultRowId);
+        return velocityContext;
+    }
+    
+    private static Object get(String key, Map<String, Object> params) {
+        return params.get(key) != null ? 
+                    params.get(key) : 
+                    params.get(key.replace(Constans.ASCII126, ""));
+    }
+    
+    private static boolean contains(String key, Map<String, Object> params) {
+        return params.containsKey(key) ? 
+                    params.containsKey(key) :
+                    params.containsKey(key.replace(Constans.ASCII126, ""));
+    }
+    
     public static void main(String[] args) throws Exception {
-        /**
+        
+        //testParseTest();
+        
+        selectTest();
+        
+        updateTest();
+        
+        insertTest();
+        
+        deleteTest();
+    }
+    
+    public static void testParseTest() {
         StringBuilder out = new StringBuilder();
         MySqlOutputVisitor visitor = new MySqlOutputVisitor(out);
         
@@ -205,9 +343,6 @@ public class SQLServiceImpl implements SQLService {
         }
         
         System.out.println(out.toString());
-        */
-        
-        selectTest();
     }
     
     @Test
@@ -227,13 +362,81 @@ public class SQLServiceImpl implements SQLService {
         sqlServiceImpl.generateSQLStatement(sql);
         
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("`role_id`", 1);
-        params.put("`role_name`", "abc");
-        params.put("`create_time`.start", "2019-08-20 12:34:56");
-        params.put("`create_time`.end", "2019-09-20 12:34:56");
+        params.put("role_id", 1);
+        params.put("role_name", "abc");
+        params.put("create_time.start", "2019-08-20 12:34:56");
+        params.put("create_time.end", "2019-09-20 12:34:56");
         params.put("__start", "1");
         params.put("__limit", "10");
         System.out.println(sqlServiceImpl.getSelect("`sys_role`", params).getModel());
+    }
+    
+    @Test
+    public static void updateTest() throws Exception {
+        String sql = "CREATE TABLE `sys_role` ("
+                + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"
+                +  "`role_name` varchar(100) DEFAULT NULL COMMENT '角色名称',"
+                +  "`remark` varchar(100) DEFAULT NULL COMMENT '备注',"
+                +  "`create_user_id` bigint(20) DEFAULT NULL COMMENT '创建者ID',"
+                +  "`create_time` datetime DEFAULT NULL COMMENT '创建时间',"
+                +  "`dept_id` bigint(20) DEFAULT NULL COMMENT '部门ID',"
+                +  "PRIMARY KEY (`role_id`)"
+                +  ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='角色'";
+        
+        SQLServiceImpl sqlServiceImpl = new SQLServiceImpl();
+        sqlServiceImpl.init();
+        sqlServiceImpl.generateSQLStatement(sql);
+        
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(PreSetColumn.Id, 1);
+        params.put("role_name", "abc");
+        params.put("create_time", "2019-08-20 12:34:56");
+        System.out.println(sqlServiceImpl.getUpdate("`sys_role`", params).getModel());
+    }
+    
+    @Test
+    public static void insertTest() throws Exception {
+        String sql = "CREATE TABLE `sys_role` ("
+                + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"
+                +  "`role_name` varchar(100) DEFAULT NULL COMMENT '角色名称',"
+                +  "`remark` varchar(100) DEFAULT NULL COMMENT '备注',"
+                +  "`create_user_id` bigint(20) DEFAULT NULL COMMENT '创建者ID',"
+                +  "`create_time` datetime DEFAULT NULL COMMENT '创建时间',"
+                +  "`dept_id` bigint(20) DEFAULT NULL COMMENT '部门ID',"
+                +  "PRIMARY KEY (`role_id`)"
+                +  ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='角色'";
+        
+        SQLServiceImpl sqlServiceImpl = new SQLServiceImpl();
+        sqlServiceImpl.init();
+        sqlServiceImpl.generateSQLStatement(sql);
+        
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(PreSetColumn.Id, 1);
+        params.put("role_name", "abc");
+        params.put("create_time", "2019-08-20 12:34:56");
+        System.out.println(sqlServiceImpl.getInsert("`sys_role`", params).getModel());
+    }
+    
+    @Test
+    public static void deleteTest() throws Exception {
+        String sql = "CREATE TABLE `sys_role` ("
+                + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"
+                +  "`role_name` varchar(100) DEFAULT NULL COMMENT '角色名称',"
+                +  "`remark` varchar(100) DEFAULT NULL COMMENT '备注',"
+                +  "status bigint(20) DEFAULT NULL COMMENT '状态',"
+                +  "`create_user_id` bigint(20) DEFAULT NULL COMMENT '创建者ID',"
+                +  "`create_time` datetime DEFAULT NULL COMMENT '创建时间',"
+                +  "`dept_id` bigint(20) DEFAULT NULL COMMENT '部门ID',"
+                +  "PRIMARY KEY (`role_id`)"
+                +  ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='角色'";
+        
+        SQLServiceImpl sqlServiceImpl = new SQLServiceImpl();
+        sqlServiceImpl.init();
+        sqlServiceImpl.generateSQLStatement(sql);
+        
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(PreSetColumn.Id, 1);
+        System.out.println(sqlServiceImpl.getDelete("`sys_role`", params).getModel());
     }
     
 }
