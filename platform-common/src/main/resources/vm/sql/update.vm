@@ -1,0 +1,5 @@
+update ${__table_name} set gmt_modified = now()
+#foreach(${__update_column} in ${__update_columns.entrySet()})
+	, ${__update_column.key.name.name} = ${__update_column.value}
+#end
+where id = ${id}

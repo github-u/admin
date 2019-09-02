@@ -1,0 +1,31 @@
+insert into ${__table_name}(
+	gmt_create,
+	gmt_modified,
+#foreach( ${__insert_column} in ${__insert_columns.entrySet()})
+#if(${foreach.last})
+	${__insert_column.key.name.name}
+#else
+	${__insert_column.key.name.name},
+#end	
+#end
+)
+values
+(
+	now(),
+	now(),
+#foreach( ${__insert_column} in ${__insert_columns.entrySet()})
+#if(${foreach.last})
+#if("$!{__insert_column.value}" != "") 
+	${__insert_column.value}
+#else
+	null
+#end
+#else
+#if("$!{__insert_column.value}" != "") 
+	${__insert_column.value},
+#else
+	null,
+#end
+#end	
+#end
+)
