@@ -46,7 +46,7 @@ public class SQLServiceImpl implements SQLService {
             return ret.fail(createTableSQLStatementRet.getErrCode(), createTableSQLStatementRet.getErrMsg());
         }
         SQLIdentifierExpr sqlIdentifierExpr = (SQLIdentifierExpr) createTableSQLStatementRet.getModel().getTableSource().getExpr();
-        createTableDDLSQLStatements.put(sqlIdentifierExpr.getName(), createTableSQLStatementRet.getModel());
+        createTableDDLSQLStatements.put(sqlIdentifierExpr.getName().replace(Constans.ASCII126, ""), createTableSQLStatementRet.getModel());
         
         return ret.success(Boolean.TRUE);
     }
@@ -155,7 +155,7 @@ public class SQLServiceImpl implements SQLService {
     
     private List<SQLColumnDefinition> getTableColumnElements(String tableName) {
         
-        MySqlCreateTableStatement mySqlCreateTableStatement = createTableDDLSQLStatements.get(tableName);
+        MySqlCreateTableStatement mySqlCreateTableStatement = get(tableName, createTableDDLSQLStatements);
         
         List<SQLColumnDefinition> tableColumnElements = 
                 mySqlCreateTableStatement.getTableElementList()
@@ -296,7 +296,7 @@ public class SQLServiceImpl implements SQLService {
         return velocityContext;
     }
     
-    private static Object get(String key, Map<String, Object> params) {
+    private static <T> T get(String key, Map<String, T> params) {
         return params.get(key) != null ? 
                     params.get(key) : 
                     params.get(key.replace(Constans.ASCII126, ""));

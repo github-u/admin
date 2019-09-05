@@ -1,0 +1,17 @@
+com/platform/service/MpMenuService.class
+com/platform/builder/ImageBuilder.class
+com/platform/handler/SubscribeHandler.class
+com/platform/handler/LogHandler.class
+com/platform/handler/AbstractHandler.class
+com/platform/entity/WxMenuKey.class
+com/platform/handler/MsgHandler.class
+com/platform/handler/KfSessionHandler.class
+com/platform/controller/MpMenuController.class
+com/platform/handler/LocationHandler.class
+com/platform/service/WeixinService.class
+com/platform/builder/TextBuilder.class
+com/platform/handler/StoreCheckNotifyHandler.class
+com/platform/handler/UnsubscribeHandler.class
+com/platform/handler/NullHandler.class
+com/platform/handler/MenuHandler.class
+com/platform/builder/AbstractBuilder.class

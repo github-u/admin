@@ -9,7 +9,7 @@ import com.platform.entity.ResultSupport;
 
 public interface DataService {
     
-    ResultSupport<List<Map<String, Object>>> select(String tableName, Map<String, Object> params);
+    ResultSupport<List<Map<String, Object>>> select(String tableName, Map<String, Object> insertParams);
     
     ResultSupport<Integer> update(String tableName, Map<String, Object> params);
     
@@ -22,7 +22,14 @@ public interface DataService {
     }
     
     public static class DataServiceModeCode{
+        
         public static final String Execute = "Execute";
+        
+        public static final String ExecuteUpdate = "ExecuteUpdate";
+        
+        public static final String ExecuteQuery = "ExecuteQuery";
+        
+        public static final String GetResult = "GetResult";
     }
     
     public static class DataServiceResultCode{
@@ -34,6 +41,12 @@ public interface DataService {
         public static final String PreparedStatementExecutorException = "PreparedStatementExecutorException";
         
         public static final String PreparedStatementOrConnectionCloseException = "PreparedStatementOrConnectionCloseException";
+        
+        public static final String ExecuteUpdateException = "ExecuteUpdateException";
+        
+        public static final String ExecuteQueryException = "ExecuteQueryException";
+        
+        public static final String GetResultException = "GetResultException";
         
     }
     
