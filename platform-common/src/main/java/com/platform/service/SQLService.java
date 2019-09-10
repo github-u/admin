@@ -2,7 +2,9 @@ package com.platform.service;
 
 import java.util.Map;
 
+import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
 import com.platform.entity.ResultSupport;
+import com.platform.utils.Pair;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,13 +13,26 @@ public interface SQLService {
     
     ResultSupport<Boolean> generateSQLStatement(String createTableDDL);
     
-    ResultSupport<String> getSelect(String tableName, Map<String, Object> queryParams);
+    ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> getSelect(String tableName, Map<String, Object> queryParams);
     
-    ResultSupport<String> getUpdate(String tableName, Map<String, Object> updateParams);
+    ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> getUpdate(String tableName, Map<String, Object> updateParams);
     
-    ResultSupport<String> getInsert(String tableName, Map<String, Object> insertParams);
+    ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> getInsert(String tableName, Map<String, Object> insertParams);
     
-    ResultSupport<String> getDelete(String tableName, Map<String, Object> params);
+    ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> getDelete(String tableName, Map<String, Object> params);
+    
+    public static class PreparedStatementValue{
+        
+        @Getter @Setter private SQLColumnDefinition sqlColumnDefinition;
+        
+        @Getter @Setter private Object value;
+        
+        public PreparedStatementValue(SQLColumnDefinition sqlColumnDefinition, Object value) {
+            this.sqlColumnDefinition = sqlColumnDefinition;
+            this.value = value;
+        }
+        
+    }
     
     public static class SQLServiceModeCode{
         public static final String CreateTableSQLStatement = "CreateTableSQLStatement";
@@ -83,9 +98,13 @@ public interface SQLService {
         
         public static final String DateTimeType = "datetime";
         
+        public static final String StringType = "varchar";
+        
         public static final String DateTimeStartSuffix = ".start";
         
         public static final String DateTimeEndSuffix = ".end";
+        
+        public static final String PercentSign = "%";
         
         public static final int NormalStatus = 0;
         
@@ -94,6 +113,8 @@ public interface SQLService {
         public static final int DefaultVersion = 0;
         
         public static final String ASCII126 = "`";
+        
+        public static final String LastInsertId = "last_insert_id()";
         
     }
     

@@ -11,11 +11,11 @@ public interface DataService {
     
     ResultSupport<List<Map<String, Object>>> select(String tableName, Map<String, Object> insertParams);
     
-    ResultSupport<Integer> update(String tableName, Map<String, Object> params);
+    ResultSupport<Long> update(String tableName, Map<String, Object> params);
     
-    ResultSupport<Integer> insert(String tableName, Map<String, Object> params);
+    ResultSupport<Long> insert(String tableName, Map<String, Object> params);
     
-    ResultSupport<Integer> delete(String tableName, int id);
+    ResultSupport<Long> delete(String tableName, int id);
     
     public interface PreparedStatementExecutor<T> {
         ResultSupport<T> call(PreparedStatement preparedStatment) throws SQLException;

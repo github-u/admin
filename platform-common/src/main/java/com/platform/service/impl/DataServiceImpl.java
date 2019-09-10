@@ -1,6 +1,7 @@
 package com.platform.service.impl;
 
 import java.sql.Connection;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -20,12 +21,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSourceFactory;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
+import com.google.common.base.Preconditions;
 import com.platform.entity.ResultSupport;
 import com.platform.service.DataService;
 import com.platform.service.SQLService;
+import com.platform.service.SQLService.Constans;
 import com.platform.service.SQLService.PreSetColumn;
+import com.platform.service.SQLService.PreparedStatementValue;
 import com.platform.utils.LangUtil;
+import com.platform.utils.Pair;
 
 import lombok.Getter;
 
@@ -45,13 +50,15 @@ public class DataServiceImpl implements DataService {
         
         ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
         
-        ResultSupport<String> selectRet = sqlService.getSelect(tableName, selectParams);
+        ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> selectRet = sqlService.getSelect(tableName, selectParams);
         if(!selectRet.isSuccess()) {
             return ret.fail(selectRet.getErrCode(), selectRet.getErrMsg());
         }
         
-        ResultSupport<List<Map<String, Object>>> executeQueryRet = executeQuery(selectRet.getModel(), 
-                new HashMap<Integer, Object>() // TODO PreStatmentPromotion
+        ResultSupport<List<Map<String, Object>>> executeQueryRet = executeQuery(
+                tableName,
+                selectRet.getModel().fst, 
+                selectRet.getModel().snd
                 );
         if(!executeQueryRet.isSuccess()) {
             return ret.fail(executeQueryRet.getErrCode(), executeQueryRet.getErrMsg());
@@ -62,17 +69,19 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public ResultSupport<Integer> update(String tableName, Map<String, Object> updateParams) {
+    public ResultSupport<Long> update(String tableName, Map<String, Object> updateParams) {
         
-        ResultSupport<Integer> ret = new ResultSupport<Integer>();
+        ResultSupport<Long> ret = new ResultSupport<Long>();
         
-        ResultSupport<String> updateRet = sqlService.getUpdate(tableName, updateParams);
+        ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> updateRet = sqlService.getUpdate(tableName, updateParams);
         if(!updateRet.isSuccess()) {
             return ret.fail(updateRet.getErrCode(), updateRet.getErrMsg());
         }
         
-        ResultSupport<Integer> executeUpdateRet = executeUpdate(updateRet.getModel(), 
-                new HashMap<Integer, Object>() // TODO PreStatmentPromotion
+        ResultSupport<Long> executeUpdateRet = executeUpdate(
+                tableName,
+                updateRet.getModel().fst, 
+                updateRet.getModel().snd
                 );
         if(!executeUpdateRet.isSuccess()) {
             return ret.fail(executeUpdateRet.getErrCode(), executeUpdateRet.getErrMsg());
@@ -83,17 +92,26 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public ResultSupport<Integer> insert(String tableName, Map<String, Object> insertParams) {
-        ResultSupport<Integer> ret = new ResultSupport<Integer>();
+    public ResultSupport<Long> insert(String tableName, Map<String, Object> insertParams) {
+        ResultSupport<Long> ret = new ResultSupport<Long>();
         
-        ResultSupport<String> insertRet = sqlService.getInsert(tableName, insertParams);
+        if(insertParams.get(PreSetColumn.Status) == null) {
+            insertParams.put(PreSetColumn.Status, 0);
+        }
+        if(insertParams.get(PreSetColumn.Version) == null) {
+            insertParams.put(PreSetColumn.Version, 0);
+        }
+        ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> insertRet = sqlService.getInsert(tableName, insertParams);
         if(!insertRet.isSuccess()) {
             return ret.fail(insertRet.getErrCode(), insertRet.getErrMsg());
         }
         
-        ResultSupport<Integer> executeInsertRet = executeUpdate(insertRet.getModel(), 
-                new HashMap<Integer, Object>() // TODO PreStatmentPromotion
+        ResultSupport<Long> executeInsertRet = executeInsert(
+                tableName,
+                insertRet.getModel().fst, 
+                insertRet.getModel().snd 
                 );
+        
         if(!executeInsertRet.isSuccess()) {
             return ret.fail(executeInsertRet.getErrCode(), executeInsertRet.getErrMsg());
         }
@@ -103,20 +121,22 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public ResultSupport<Integer> delete(String tableName, int id) {
+    public ResultSupport<Long> delete(String tableName, int id) {
         
-        ResultSupport<Integer> ret = new ResultSupport<Integer>();
+        ResultSupport<Long> ret = new ResultSupport<Long>();
         
         Map<String, Object> deleteParams = new HashMap<String, Object>();
         deleteParams.put(PreSetColumn.Id, id);
         
-        ResultSupport<String> deleteRet = sqlService.getDelete(tableName, deleteParams);
+        ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> deleteRet = sqlService.getDelete(tableName, deleteParams);
         if(!deleteRet.isSuccess()) {
             return ret.fail(deleteRet.getErrCode(), deleteRet.getErrMsg());
         }
         
-        ResultSupport<Integer> executeUpdateRet = executeUpdate(deleteRet.getModel(), 
-                new HashMap<Integer, Object>() // TODO PreStatmentPromotion
+        ResultSupport<Long> executeUpdateRet = executeUpdate(
+                tableName,
+                deleteRet.getModel().fst, 
+                deleteRet.getModel().snd
                 );
         if(!executeUpdateRet.isSuccess()) {
             return ret.fail(executeUpdateRet.getErrCode(), executeUpdateRet.getErrMsg());
@@ -126,13 +146,26 @@ public class DataServiceImpl implements DataService {
         
     }
     
-    private ResultSupport<Integer> executeUpdate(String sql, Map<Integer, Object> params){
+    private ResultSupport<Long> executeInsert(String tableName, String sql, Map<Integer, PreparedStatementValue> params){
         
-        ResultSupport<Integer> ret = new ResultSupport<Integer>();
+        ResultSupport<Long> ret = new ResultSupport<Long>();
         try {
-            return execute(sql, params, druidDataSource, new PreparedStatementExecutor<Integer>() {
-                public ResultSupport<Integer> call(PreparedStatement preparedStatment) throws SQLException{
-                    return new ResultSupport<Integer>().success(preparedStatment.executeUpdate());
+            return execute(sql, params, druidDataSource, new PreparedStatementExecutor<Long>() {
+                public ResultSupport<Long> call(PreparedStatement preparedStatment) throws SQLException{
+                    
+                    Preconditions.checkArgument(preparedStatment.executeUpdate() > 0, "table not insert excactly, table is " + tableName);
+                    ResultSet insertRowIdResultSet = preparedStatment.executeQuery("" 
+                            + " select " + Constans.LastInsertId
+                            + " from " + tableName 
+                            + " limit 1;");
+                    
+                    ResultSupport<List<Map<String, Object>>> insertRowIdResultRet = getResult(insertRowIdResultSet);
+                    Preconditions.checkArgument(insertRowIdResultRet.isSuccess(), "get last insert row id fail, table is " + tableName);
+                    
+                    Long rowId = LangUtil.safeLong(insertRowIdResultRet.getModel().get(0).get(Constans.LastInsertId));
+                    Preconditions.checkArgument(rowId != null && rowId > 0, "last row id invalid, table is " + tableName);
+                    
+                    return new ResultSupport<Long>().success(rowId);
                 }
             });
         }catch(Exception e) {
@@ -143,7 +176,24 @@ public class DataServiceImpl implements DataService {
         }
     }
     
-    private ResultSupport<List<Map<String, Object>>> executeQuery(String sql, Map<Integer, Object> params){
+    private ResultSupport<Long> executeUpdate(String tableName, String sql, Map<Integer, PreparedStatementValue> params){
+        
+        ResultSupport<Long> ret = new ResultSupport<Long>();
+        try {
+            return execute(sql, params, druidDataSource, new PreparedStatementExecutor<Long>() {
+                public ResultSupport<Long> call(PreparedStatement preparedStatment) throws SQLException{
+                    return new ResultSupport<Long>().success(Long.valueOf(preparedStatment.executeUpdate()));
+                }
+            });
+        }catch(Exception e) {
+            logger.error("title=" + "DataServiceImpl"
+                    + "$mode=" + DataServiceModeCode.ExecuteUpdate
+                    + "$errCode=" + DataServiceResultCode.ExecuteUpdateException, e);
+            return ret.fail(DataServiceResultCode.ExecuteUpdateException, e.getMessage());
+        }
+    }
+    
+    private ResultSupport<List<Map<String, Object>>> executeQuery(String tableName, String sql, Map<Integer, PreparedStatementValue> params){
         
         ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
         try {
@@ -164,7 +214,7 @@ public class DataServiceImpl implements DataService {
         
         ResultSupport<String> ret = new ResultSupport<String>();
         String querySQL = "show create table " + tableName + ";";
-        ResultSupport<List<Map<String, Object>>> executeQueryRet = executeQuery(querySQL, new HashMap<Integer, Object>());
+        ResultSupport<List<Map<String, Object>>> executeQueryRet = executeQuery(tableName, querySQL, new HashMap<Integer, PreparedStatementValue>());
         if(!executeQueryRet.isSuccess()) {
             return ret.fail(executeQueryRet.getErrCode(), executeQueryRet.getErrMsg());
         }
@@ -178,17 +228,29 @@ public class DataServiceImpl implements DataService {
                 
     }
     
-    private static <T> ResultSupport<T> execute(String sql, Map<Integer, Object> params, 
+    private static <T> ResultSupport<T> execute(String sql, Map<Integer, PreparedStatementValue> params, 
             DataSource druidDataSource, PreparedStatementExecutor<T> preparedStatementExecutor) throws Exception{
-        
-        ResultSupport<T> ret = new ResultSupport<T>();
+               ResultSupport<T> ret = new ResultSupport<T>();
         
         Connection connection = druidDataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         try {
             try {
-                for(Map.Entry<Integer, Object> param: params.entrySet()) {
-                    preparedStatement.setObject(param.getKey(), param.getValue());
+                for(Map.Entry<Integer, PreparedStatementValue> param: params.entrySet()) {
+                    if(param.getValue().getValue() != null) {
+                        preparedStatement.setObject(param.getKey(), param.getValue().getValue());
+                    }else{
+                        
+                        SQLColumnDefinition sqlColumnDefinition = param.getValue().getSqlColumnDefinition();
+                        
+                        JDBCType jdbcType = parseJDBCType(sqlColumnDefinition.getDataType().getName());
+                        if(jdbcType == null) {
+                            throw new RuntimeException("column type not known, type is " + sqlColumnDefinition.getDataType().getName());
+                        }
+                        
+                        preparedStatement.setNull(param.getKey(), jdbcType.getVendorTypeNumber());
+                    }
+                    
                 }
             }catch(Exception e) {
                 logger.error("title=" + "DataServiceImpl"
@@ -319,11 +381,23 @@ public class DataServiceImpl implements DataService {
         return properties;
     }
     
+    private static JDBCType parseJDBCType(String columnDataTypeName) {
+        
+        JDBCType jdbcType = null;
+        
+        for(JDBCType tJDBCType : JDBCType.values()) {
+            if(tJDBCType.getName().equalsIgnoreCase(columnDataTypeName)) {
+                jdbcType = tJDBCType;
+            }
+        }
+        
+        return jdbcType;
+    }
     public static void main(String[] args) throws Exception {
         
         //testCollection();
         
-        //testSelect();
+        testSelect();
         
         //testInsert();
         
@@ -336,8 +410,10 @@ public class DataServiceImpl implements DataService {
     @Test
     private static void testInsert() throws Exception {
         
-        String tableName = "sys_role";
+        String tableName = "sys_test";
         Map<String, Object> insertParams = new HashMap<String, Object>();
+        insertParams.put("text", "a");
+        insertParams.put("time", "2019-01-02 12:34:56");
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
@@ -352,8 +428,7 @@ public class DataServiceImpl implements DataService {
     @Test
     private static void testDelete() throws Exception {
         
-        String tableName = "sys_role";
-        Map<String, Object> deleteParams = new HashMap<String, Object>();
+        String tableName = "sys_test";
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
@@ -361,15 +436,18 @@ public class DataServiceImpl implements DataService {
         ResultSupport<String> createTableDDLRet = dataServiceImpl.getCreateTableDDL(tableName);
         dataServiceImpl.getSqlService().generateSQLStatement(createTableDDLRet.getModel());
         
-        System.out.println(dataServiceImpl.insert(tableName, deleteParams));
+        System.out.println(dataServiceImpl.delete(tableName, 8));
         
     }
     
     @Test
     private static void testSelect() throws Exception {
         
-        String tableName = "sys_role";
+        String tableName = "sys_test";
         Map<String, Object> selectParams = new HashMap<String, Object>();
+        selectParams.put("time.start", "2019-01-02 00:00:00");
+        selectParams.put("time.end", "2019-09-10 23:00:00");
+        selectParams.put("version", 0);
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
@@ -382,8 +460,13 @@ public class DataServiceImpl implements DataService {
     
     @Test
     private static void testUpdate() throws Exception {
-        String tableName = "sys_role";
+        String tableName = "sys_test";
         Map<String, Object> updateParams = new HashMap<String, Object>();
+        updateParams.put("id", 3);
+        updateParams.put("text", "3");
+        updateParams.put("status", "1");
+        updateParams.put("time", "2019-09-10 01:02:03");
+        updateParams.put("attribute", "a:1;b:2");
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
@@ -391,7 +474,7 @@ public class DataServiceImpl implements DataService {
         ResultSupport<String> createTableDDLRet = dataServiceImpl.getCreateTableDDL(tableName);
         dataServiceImpl.getSqlService().generateSQLStatement(createTableDDLRet.getModel());
         
-        System.out.println(dataServiceImpl.insert(tableName, updateParams));
+        System.out.println(dataServiceImpl.update(tableName, updateParams));
     }
     
     @Test
@@ -400,8 +483,8 @@ public class DataServiceImpl implements DataService {
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
         
-        System.out.println(dataServiceImpl.getCreateTableDDL("sys_role"));
+        System.out.println(dataServiceImpl.getCreateTableDDL("sys_test"));
         
     }
+    
 }
-
