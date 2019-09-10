@@ -447,7 +447,6 @@ public class DataServiceImpl implements DataService {
         Map<String, Object> selectParams = new HashMap<String, Object>();
         selectParams.put("time.start", "2019-01-02 00:00:00");
         selectParams.put("time.end", "2019-09-10 23:00:00");
-        selectParams.put("version", 0);
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
