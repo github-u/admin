@@ -15,9 +15,21 @@ values
 	now(),
 #foreach( ${__insert_column} in ${__insert_columns.entrySet()})
 #if(${foreach.last})
-	?
+#*
+	#if("$!{__insert_column.value}" != "") 
+		${__insert_column.value}
+	#else
+		null
+	#end
+*#	?
 #else
-	?,
+#*
+	#if("$!{__insert_column.value}" != "") 
+		${__insert_column.value},
+	#else
+		null,
+	#end
+*#	?,
 #end	
 #end
 )

@@ -1,5 +1,6 @@
-update ${__table_name} set gmt_modified = now()
+update ${__table_name} set gmt_modified = now(), version = version + 1
 #foreach(${__update_column} in ${__update_columns.entrySet()})
-	, ${__update_column.key.name.name} = ${__update_column.value}
+##	, ${__update_column.key.name.name} = ${__update_column.value}
+	, ${__update_column.key.name.name} = ?
 #end
 where id = ${id}

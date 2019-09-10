@@ -12,16 +12,21 @@ where
 	1 = 1
 #foreach(${__condition} in ${__conditions.entrySet()})
 #if(${__condition.key.dataType.name} == 'bigint')	
-	and ${__condition.key.name.name} = ${__condition.value}
+##	and ${__condition.key.name.name} = ${__condition.value}
+	and ${__condition.key.name.name} = ?
 #elseif(${__condition.key.dataType.name} == 'varchar')	
-	and ${__condition.key.name.name} like "%${__condition.value}%"
+##	and ${__condition.key.name.name} like "%${__condition.value}%"
+	and ${__condition.key.name.name} like ?
 #elseif(${__condition.key.dataType.name} == 'datetime')
 #if("$!{__condition.value.start}" != "") 
-	and ${__condition.key.name.name} >= "$!{__condition.value.start}"
+##	and ${__condition.key.name.name} >= "$!{__condition.value.start}"
+	and ${__condition.key.name.name} >= ?
 #end
 #if("$!{__condition.value.end}" != "")
-	and ${__condition.key.name.name} <= "$!{__condition.value.end}"
+##	and ${__condition.key.name.name} <= "$!{__condition.value.end}"
+	and ${__condition.key.name.name} <= ?
 #end
 #end	
 #end
-limit ${__start}, ${__limit}
+##limit ${__start}, ${__limit}
+limit ?, ?
