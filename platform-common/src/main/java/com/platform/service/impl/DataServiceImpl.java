@@ -50,6 +50,11 @@ public class DataServiceImpl implements DataService {
         
         ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
         
+        ResultSupport<Boolean> registeredSQLStatementRet = registeredSQLStatement(tableName);
+        if(!registeredSQLStatementRet.isSuccess()) {
+            return ret.fail(registeredSQLStatementRet.getErrCode(), registeredSQLStatementRet.getErrMsg());
+        }
+        
         ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> selectRet = sqlService.getSelect(tableName, selectParams);
         if(!selectRet.isSuccess()) {
             return ret.fail(selectRet.getErrCode(), selectRet.getErrMsg());
@@ -73,6 +78,11 @@ public class DataServiceImpl implements DataService {
         
         ResultSupport<Long> ret = new ResultSupport<Long>();
         
+        ResultSupport<Boolean> registeredSQLStatementRet = registeredSQLStatement(tableName);
+        if(!registeredSQLStatementRet.isSuccess()) {
+            return ret.fail(registeredSQLStatementRet.getErrCode(), registeredSQLStatementRet.getErrMsg());
+        }
+        
         ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> updateRet = sqlService.getUpdate(tableName, updateParams);
         if(!updateRet.isSuccess()) {
             return ret.fail(updateRet.getErrCode(), updateRet.getErrMsg());
@@ -94,6 +104,11 @@ public class DataServiceImpl implements DataService {
     @Override
     public ResultSupport<Long> insert(String tableName, Map<String, Object> insertParams) {
         ResultSupport<Long> ret = new ResultSupport<Long>();
+        
+        ResultSupport<Boolean> registeredSQLStatementRet = registeredSQLStatement(tableName);
+        if(!registeredSQLStatementRet.isSuccess()) {
+            return ret.fail(registeredSQLStatementRet.getErrCode(), registeredSQLStatementRet.getErrMsg());
+        }
         
         if(insertParams.get(PreSetColumn.Status) == null) {
             insertParams.put(PreSetColumn.Status, 0);
@@ -124,6 +139,11 @@ public class DataServiceImpl implements DataService {
     public ResultSupport<Long> delete(String tableName, int id) {
         
         ResultSupport<Long> ret = new ResultSupport<Long>();
+        
+        ResultSupport<Boolean> registeredSQLStatementRet = registeredSQLStatement(tableName);
+        if(!registeredSQLStatementRet.isSuccess()) {
+            return ret.fail(registeredSQLStatementRet.getErrCode(), registeredSQLStatementRet.getErrMsg());
+        }
         
         Map<String, Object> deleteParams = new HashMap<String, Object>();
         deleteParams.put(PreSetColumn.Id, id);
@@ -316,6 +336,23 @@ public class DataServiceImpl implements DataService {
         return ret.success(model);
     }
     
+    private ResultSupport<Boolean> registeredSQLStatement(String tableName) {
+        
+        ResultSupport<Boolean> ret = new ResultSupport<Boolean> ();
+        
+        if(sqlService.getSQLStatement(tableName).isSuccess()) {
+            return ret.success(Boolean.TRUE);
+        }
+        
+        ResultSupport<String> createTableDDLRet = getCreateTableDDL(tableName);
+        if(!createTableDDLRet.isSuccess()) {
+            return ret.fail(createTableDDLRet.getErrCode(), createTableDDLRet.getErrMsg());
+        }
+        
+        return sqlService.generateSQLStatement(createTableDDLRet.getModel());
+        
+    }
+    
     public void init() throws Exception{
         
         if(inited.get()) {
@@ -397,7 +434,7 @@ public class DataServiceImpl implements DataService {
         
         //testCollection();
         
-        testSelect();
+        //testSelect();
         
         //testInsert();
         
@@ -418,9 +455,6 @@ public class DataServiceImpl implements DataService {
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
         
-        ResultSupport<String> createTableDDLRet = dataServiceImpl.getCreateTableDDL(tableName);
-        dataServiceImpl.getSqlService().generateSQLStatement(createTableDDLRet.getModel());
-        
         System.out.println(dataServiceImpl.insert(tableName, insertParams));
         
     }
@@ -432,9 +466,6 @@ public class DataServiceImpl implements DataService {
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
-        
-        ResultSupport<String> createTableDDLRet = dataServiceImpl.getCreateTableDDL(tableName);
-        dataServiceImpl.getSqlService().generateSQLStatement(createTableDDLRet.getModel());
         
         System.out.println(dataServiceImpl.delete(tableName, 8));
         
@@ -451,9 +482,6 @@ public class DataServiceImpl implements DataService {
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
         
-        ResultSupport<String> createTableDDLRet = dataServiceImpl.getCreateTableDDL(tableName);
-        dataServiceImpl.getSqlService().generateSQLStatement(createTableDDLRet.getModel());
-        
         System.out.println(dataServiceImpl.select(tableName, selectParams));
     }
     
@@ -469,9 +497,6 @@ public class DataServiceImpl implements DataService {
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();
         dataServiceImpl.init();
-        
-        ResultSupport<String> createTableDDLRet = dataServiceImpl.getCreateTableDDL(tableName);
-        dataServiceImpl.getSqlService().generateSQLStatement(createTableDDLRet.getModel());
         
         System.out.println(dataServiceImpl.update(tableName, updateParams));
     }

@@ -3,6 +3,7 @@ package com.platform.service;
 import java.util.Map;
 
 import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateTableStatement;
 import com.platform.entity.ResultSupport;
 import com.platform.utils.Pair;
 
@@ -12,6 +13,8 @@ import lombok.Setter;
 public interface SQLService {
     
     ResultSupport<Boolean> generateSQLStatement(String createTableDDL);
+    
+    ResultSupport<MySqlCreateTableStatement> getSQLStatement(String tableName);
     
     ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> getSelect(String tableName, Map<String, Object> queryParams);
     
@@ -45,6 +48,8 @@ public interface SQLService {
         public static final String NoneCreateTableSQLFound = "NoneCreateTableSQLFound";
         
         public static final String NoneCreateTableStatementFound = "NoneCreateTableStatementFound";
+        
+        public static final String NoneCreateTableStatementGenerated = "NoneCreateTableStatementGenerated";
         
     }
     

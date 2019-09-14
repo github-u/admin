@@ -9,11 +9,11 @@ import com.platform.entity.ResultSupport;
 
 public interface DataService {
     
-    ResultSupport<List<Map<String, Object>>> select(String tableName, Map<String, Object> insertParams);
+    ResultSupport<List<Map<String, Object>>> select(String tableName, Map<String, Object> selectParams);
     
-    ResultSupport<Long> update(String tableName, Map<String, Object> params);
+    ResultSupport<Long> update(String tableName, Map<String, Object> updateParams);
     
-    ResultSupport<Long> insert(String tableName, Map<String, Object> params);
+    ResultSupport<Long> insert(String tableName, Map<String, Object> insertParams);
     
     ResultSupport<Long> delete(String tableName, int id);
     

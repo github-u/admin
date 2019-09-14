@@ -54,6 +54,17 @@ public class SQLServiceImpl implements SQLService {
     }
     
     @Override
+    public ResultSupport<MySqlCreateTableStatement> getSQLStatement(String tableName) {
+        ResultSupport<MySqlCreateTableStatement> ret = new ResultSupport<MySqlCreateTableStatement>();
+        
+        MySqlCreateTableStatement mySqlCreateTableStatement = get(tableName, createTableDDLSQLStatements);
+        if(mySqlCreateTableStatement != null) {
+            return ret.success(mySqlCreateTableStatement);
+        }else {
+            return ret.fail(SQLServiceResultCode.NoneCreateTableStatementGenerated, "table name is " + tableName);
+        }
+    }
+    @Override
     public ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> getSelect(String tableName, Map<String, Object> params) {
         
         ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> ret = new ResultSupport<Pair<String, Map<Integer, PreparedStatementValue>>> (); 
