@@ -14,7 +14,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.junit.Test;
+//import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -488,7 +488,7 @@ public class SQLServiceImpl implements SQLService {
         System.out.println(out.toString());
     }
     
-    @Test
+    //@Test
     public static void selectTest() throws Exception {
         String sql = "CREATE TABLE `sys_role` ("
                 + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"
@@ -514,7 +514,7 @@ public class SQLServiceImpl implements SQLService {
         System.out.println(sqlServiceImpl.getSelect("`sys_role`", params).getModel());
     }
     
-    @Test
+    //@Test
     public static void updateTest() throws Exception {
         String sql = "CREATE TABLE `sys_role` ("
                 + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"
@@ -537,7 +537,7 @@ public class SQLServiceImpl implements SQLService {
         System.out.println(sqlServiceImpl.getUpdate("`sys_role`", params).getModel());
     }
     
-    @Test
+    //@Test
     public static void insertTest() throws Exception {
         String sql = "CREATE TABLE `sys_role` ("
                 + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"
@@ -560,7 +560,7 @@ public class SQLServiceImpl implements SQLService {
         System.out.println(sqlServiceImpl.getInsert("`sys_role`", params).getModel());
     }
     
-    @Test
+    //@Test
     public static void deleteTest() throws Exception {
         String sql = "CREATE TABLE `sys_role` ("
                 + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"

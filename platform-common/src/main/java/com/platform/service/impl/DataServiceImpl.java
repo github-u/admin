@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.sql.DataSource;
 
-import org.junit.Test;
+//import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -444,7 +444,7 @@ public class DataServiceImpl implements DataService {
         
     }
         
-    @Test
+    //@Test
     private static void testInsert() throws Exception {
         
         String tableName = "sys_test";
@@ -459,7 +459,7 @@ public class DataServiceImpl implements DataService {
         
     }
     
-    @Test
+    //@Test
     private static void testDelete() throws Exception {
         
         String tableName = "sys_test";
@@ -471,7 +471,7 @@ public class DataServiceImpl implements DataService {
         
     }
     
-    @Test
+    //@Test
     private static void testSelect() throws Exception {
         
         String tableName = "sys_test";
@@ -485,7 +485,7 @@ public class DataServiceImpl implements DataService {
         System.out.println(dataServiceImpl.select(tableName, selectParams));
     }
     
-    @Test
+    //@Test
     private static void testUpdate() throws Exception {
         String tableName = "sys_test";
         Map<String, Object> updateParams = new HashMap<String, Object>();
@@ -501,7 +501,7 @@ public class DataServiceImpl implements DataService {
         System.out.println(dataServiceImpl.update(tableName, updateParams));
     }
     
-    @Test
+    //@Test
     private static void testCollection() throws Exception {
         
         DataServiceImpl dataServiceImpl = new DataServiceImpl();

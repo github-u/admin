@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +42,10 @@ public class PageController {
         
     }
     
+    public PageController() throws Exception {
+        init();
+    }
+    
     public static class PageControllerMode{
         public static final String Data = "Data";
     }
@@ -49,12 +54,12 @@ public class PageController {
         public static final String GetDataException = "GetDataException";
     }
     
-    @RequestMapping("/meta")
+    @RequestMapping(value = "/meta", method = RequestMethod.GET)
     public void meta(HttpServletResponse response) throws ServletException, IOException {
         
     }
     
-    @RequestMapping("/data")
+    @RequestMapping(value = "/data", method = RequestMethod.GET)
     public void data(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
         
@@ -66,7 +71,8 @@ public class PageController {
             String tableName = LangUtil.convert(params.get(Constants.TableName), String.class);
             String condition = LangUtil.convert(params.get(Constants.Condition), String.class);
             
-            Map<String, Object> conditionMap = JSON.parseObject(condition); 
+            Map<String, Object> conditionMap = JSON.parseObject(condition);
+            
             ResultSupport<List<Map<String, Object>>> selectRet = dataService.select(tableName, conditionMap);
             
             ConsoleUtil.print(response, selectRet);
@@ -122,6 +128,12 @@ public class PageController {
         ((DataServiceImpl)dataService).init();
         
         inited.compareAndSet(false, true);
+    }
+    
+    public static void main(String[] args) {
+        Object obj = JSON.parseObject("{}");
+        System.out.println(obj);
+        
     }
     
 }
