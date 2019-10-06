@@ -75,7 +75,7 @@ public class PageController {
             
             ResultSupport<List<Map<String, Object>>> selectRet = dataService.select(tableName, conditionMap);
             
-            ConsoleUtil.print(response, selectRet);
+            ConsoleUtil.print(addCorsHeaders(request, response), selectRet);
         }catch(Exception e) {
             logger.error("title=" + "PageController"
                         + "$mode=" + PageControllerMode.Data
@@ -119,6 +119,16 @@ public class PageController {
         return ret;
     }
     
+    private HttpServletResponse addCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+        
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Headers", "x-requested-with,X-Nideshop-Token,X-URL-PATH");
+        
+        return response;
+    }
     public void init() throws Exception {
         
         if(inited.get()) {

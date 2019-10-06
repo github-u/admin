@@ -107,11 +107,11 @@ public class BeanUtil {
 		return dest;
 	}
 
-	public static <T> T copyPropertiesFrom(Map<String, Object> map, Class<T> clz) throws Exception {
+	public static <T> T copyPropertiesFrom(Map<String, ? extends Object> map, Class<T> clz) throws Exception {
 		return copyPropertiesFrom(map, clz, true);
 	}
 
-	public static <T> T copyPropertiesFrom(Map<String, Object> map, Class<T> clz, boolean ignoreNull) throws Exception {
+	public static <T> T copyPropertiesFrom(Map<String, ? extends Object> map, Class<T> clz, boolean ignoreNull) throws Exception {
 
 		T bean = clz.newInstance();
 
