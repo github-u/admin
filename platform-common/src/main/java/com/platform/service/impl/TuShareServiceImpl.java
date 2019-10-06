@@ -154,9 +154,102 @@ public class TuShareServiceImpl implements TuShareService {
         
     }
     
-    
-    private static Map<String, Object> t(Map<String, String> map){
-        return map.entrySet().stream().collect(Collectors.toMap(kv -> kv.getKey(), kv -> kv.getValue()));
+    public static void dailyBasic() throws Exception {
+        
+        TuShareService tuShareService = new TuShareServiceImpl();
+        
+        Map<String, String> param = Maps.newHashMap();
+        //param.put("ts_code", "");//N H S
+        param.put("trade_date", "20190930");
+        //param.put("start_date", "20181001");
+        //param.put("end_date", "20181001");
+        
+        TuShareParam tuShareParam = new TuShareParam(
+                "daily_basic", 
+                TUSHARE_TOKEN, 
+                param, 
+                "ts_code,trade_date,close,turnover_rate,turnover_rate_f,volume_ratio,pe,pe_ttm,pb,ps,ps_ttm,total_share,float_share,free_share,total_mv,circ_mv");
+        
+        ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
+        
+        Preconditions.checkArgument(result.isSuccess());
+        
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        String tableName = "daily_basic";
+        for(int i = 0; i < result.getModel().getItems().size(); i++) {
+            
+            Map<String, Object> insertParams = result.getModel().getItem(i);
+            
+            Map<String, Object> selectParams = new HashMap<String, Object>();
+            selectParams.put("ts_code", insertParams.get("ts_code"));
+            ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
+            if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+                insertParams.put("id", selectRet.getModel().get(0).get("id"));
+                ResultSupport<Long> updateRet = dataServiceImpl.update(tableName, insertParams);
+                Preconditions.checkArgument(updateRet.isSuccess() && updateRet.getModel() > 0);
+            }else {
+                ResultSupport<Long> insertRet = dataServiceImpl.insert(tableName, insertParams);
+                Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0);
+            }
+        }
+        
     }
+    
+    public static void income(String tsCode) throws Exception {
+        
+        TuShareService tuShareService = new TuShareServiceImpl();
+        
+        Map<String, String> param = Maps.newHashMap();
+        param.put("ts_code", tsCode);
+        //param.put("ann_date", "20190930");
+        //param.put("start_date", "20181001");
+        //param.put("end_date", "20181001");
+        //param.put("period", "20181001");
+        //param.put("report_type", "20181001");
+        //param.put("comp_type", "20181001");
+        
+        TuShareParam tuShareParam = new TuShareParam(
+                "income", 
+                TUSHARE_TOKEN, 
+                param, 
+                "ts_code,ann_date,f_ann_date,end_date,report_type,comp_type,basic_eps,diluted_eps,total_revenue,revenue,"
+                        + "int_income,prem_earned,comm_income,n_commis_income,n_oth_income,n_oth_b_income,prem_income,out_prem,"
+                        + "une_prem_reser,reins_income,n_sec_tb_income,n_sec_uw_income,n_asset_mg_income,oth_b_income,fv_value_chg_gain,"
+                        + "invest_income,ass_invest_income,forex_gain,total_cogs,oper_cost,int_exp,comm_exp,biz_tax_surchg,sell_exp,admin_exp,"
+                        + "fin_exp,assets_impair_loss,prem_refund,compens_payout,reser_insur_liab,div_payt,reins_exp,oper_exp,compens_payout_refu,"
+                        + "insur_reser_refu,reins_cost_refund,other_bus_cost,operate_profit,non_oper_income,non_oper_exp,nca_disploss,total_profit,"
+                        + "income_tax,n_income,n_income_attr_p,minority_gain,oth_compr_income,t_compr_income,compr_inc_attr_p,compr_inc_attr_m_s,ebit,"
+                        + "ebitda,insurance_exp,undist_profit,distable_profit,update_flag"
+                );
+        
+        ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
+        
+        Preconditions.checkArgument(result.isSuccess());
+        
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        String tableName = "income";
+        for(int i = 0; i < result.getModel().getItems().size(); i++) {
+            
+            Map<String, Object> insertParams = result.getModel().getItem(i);
+            
+            Map<String, Object> selectParams = new HashMap<String, Object>();
+            selectParams.put("ts_code", insertParams.get("ts_code"));
+            ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
+            if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+                insertParams.put("id", selectRet.getModel().get(0).get("id"));
+                ResultSupport<Long> updateRet = dataServiceImpl.update(tableName, insertParams);
+                Preconditions.checkArgument(updateRet.isSuccess() && updateRet.getModel() > 0);
+            }else {
+                ResultSupport<Long> insertRet = dataServiceImpl.insert(tableName, insertParams);
+                Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0);
+            }
+        }
+        
+    }
+    
     
 }
