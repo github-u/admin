@@ -16,7 +16,7 @@ public class TuShareData {
     
     @Getter @Setter List<String> fields;
     
-    @Getter @Setter List<List<String>> items;
+    @Getter @Setter List<List<Object>> items;
     
     @Getter @Setter @FieldAnnotation(alias = "has_more") Boolean hasMore;
     
@@ -25,7 +25,7 @@ public class TuShareData {
             return null;
         }
         
-        List<String> itemElem = items.get(index);
+        List<Object> itemElem = items.get(index);
         
         return IntStream.range(0, itemElem.size())
                 .mapToObj(i -> {
