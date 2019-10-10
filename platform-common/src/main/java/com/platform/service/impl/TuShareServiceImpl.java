@@ -106,7 +106,12 @@ public class TuShareServiceImpl implements TuShareService {
         
         //dailyBasic();
         
-        income();
+        //income();
+        
+        //income();
+        
+        
+        shareFloat();
         
         System.out.println("");
         
@@ -262,7 +267,7 @@ public class TuShareServiceImpl implements TuShareService {
         //param.put("ann_date", "20190930");
         //param.put("start_date", "20181001");
         //param.put("end_date", "20181001");
-        param.put("period", "20190630");
+        param.put("period", "20161231");
         //param.put("report_type", "20181001");
         //param.put("comp_type", "20181001");
         
@@ -284,13 +289,113 @@ public class TuShareServiceImpl implements TuShareService {
         
         Preconditions.checkArgument(result.isSuccess());
         
-        String tableName = "income";
+        String tableName = "income_20161231";
         for(int i = 0; i < result.getModel().getItems().size(); i++) {
             
             Map<String, Object> insertParams = result.getModel().getItem(i);
             
             Map<String, Object> selectParams = new HashMap<String, Object>();
             selectParams.put("ts_code", insertParams.get("ts_code"));
+            ResultSupport<List<Map<String, Object>>> selectRet = dataService.select(tableName, selectParams);
+            if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+                insertParams.put("id", selectRet.getModel().get(0).get("id"));
+                ResultSupport<Long> updateRet = dataService.update(tableName, insertParams);
+                Preconditions.checkArgument(updateRet.isSuccess() && updateRet.getModel() > 0);
+            }else {
+                ResultSupport<Long> insertRet = dataService.insert(tableName, insertParams);
+                Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0);
+            }
+        }
+        
+    }
+    
+    public static void shareFloat() throws Exception {
+        
+        List<String> tsCodes = Lists.newArrayList();
+        
+        String tableName = "stock_basic";
+        
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        Map<String, Object> selectParams = new HashMap<String, Object>();
+        selectParams.put(VelocityContextKey.Limit, 4000);
+        ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
+        
+        Preconditions.checkArgument(selectRet.isSuccess());
+        
+        tsCodes = selectRet.getModel().stream()
+                .map(item->{
+                    return LangUtil.convert(item.get("ts_code"), String.class);
+                })
+                .filter(tsCode -> tsCode != null)
+                .collect(Collectors.toList());
+        
+        RateLimiter rateLimiter = RateLimiter.create(0.4);
+        
+        for(String tsCode : tsCodes) {
+            System.out.println("income=" + tsCode);
+            rateLimiter.acquire();
+            try {
+                shareFloat(tsCode, dataServiceImpl);
+            }catch(Exception e) {
+                System.out.println("income=" + tsCode + e.getMessage());
+            }
+        }
+        
+    }
+    
+    public static void shareFloat(String tsCode) throws Exception {
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        shareFloat(tsCode, dataServiceImpl);
+    }
+    
+    public static void shareFloat(String tsCode, DataService dataService) throws Exception {
+        
+        TuShareService tuShareService = new TuShareServiceImpl();
+        
+        Map<String, String> param = Maps.newHashMap();
+        param.put("ts_code", tsCode);
+        //param.put("ann_date", "20190930");
+        //param.put("float_date", "20181001");
+        param.put("start_date", "20190930");
+        param.put("end_date", "20200930");
+        
+        TuShareParam tuShareParam = new TuShareParam(
+                "share_float", 
+                TUSHARE_TOKEN, 
+                param, 
+                "ts_code,ann_date,float_date,float_share,float_ratio,holder_name,share_type");
+        
+        ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
+        
+        Preconditions.checkArgument(result.isSuccess());
+        
+        /**
+        for(int i = result.getModel().getItems().size() - 1; i >=0 ; i--) {
+            Map<String, Object> itemElem  = result.getModel().getItem(i);
+            if(!"首发原始股".equals(itemElem.get("share_type"))) {
+                result.getModel().getItems().remove(i);
+            }
+        }
+        */
+        
+        String tableName = "share_float";
+        for(int i = 0; i < result.getModel().getItems().size(); i++) {
+            
+            Map<String, Object> insertParams = result.getModel().getItem(i);
+            
+            Map<String, Object> selectParams = new HashMap<String, Object>();
+            selectParams.put("ts_code", insertParams.get("ts_code"));
+            //selectParams.put("ann_date", insertParams.get("ann_date"));
+            selectParams.put("float_date", insertParams.get("float_date"));
+            //selectParams.put("float_share", insertParams.get("float_share"));
+            //selectParams.put("float_ratio", insertParams.get("float_ratio"));
+            selectParams.put("holder_name", insertParams.get("holder_name"));
+            selectParams.put("share_type", insertParams.get("share_type"));
+            
             ResultSupport<List<Map<String, Object>>> selectRet = dataService.select(tableName, selectParams);
             if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
                 insertParams.put("id", selectRet.getModel().get(0).get("id"));
