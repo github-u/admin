@@ -110,8 +110,9 @@ public class TuShareServiceImpl implements TuShareService {
         
         //income();
         
+        //shareFloat();
         
-        shareFloat();
+        forecast("000877.SZ");
         
         System.out.println("");
         
@@ -409,4 +410,95 @@ public class TuShareServiceImpl implements TuShareService {
         
     }
     
+    public static void forecast() throws Exception {
+        
+        List<String> tsCodes = Lists.newArrayList();
+        
+        String tableName = "stock_basic";
+        
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        Map<String, Object> selectParams = new HashMap<String, Object>();
+        selectParams.put(VelocityContextKey.Limit, 4000);
+        ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
+        
+        Preconditions.checkArgument(selectRet.isSuccess());
+        
+        tsCodes = selectRet.getModel().stream()
+                .map(item->{
+                    return LangUtil.convert(item.get("ts_code"), String.class);
+                })
+                .filter(tsCode -> tsCode != null)
+                .collect(Collectors.toList());
+        
+        RateLimiter rateLimiter = RateLimiter.create(0.4);
+        
+        for(String tsCode : tsCodes) {
+            System.out.println("income=" + tsCode);
+            rateLimiter.acquire();
+            try {
+                forecast(tsCode, dataServiceImpl);
+            }catch(Exception e) {
+                System.out.println("income=" + tsCode + e.getMessage());
+            }
+        }
+        
+    }
+    
+    public static void forecast(String tsCode) throws Exception {
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        forecast(tsCode, dataServiceImpl);
+    }
+    
+    public static void forecast(String tsCode, DataService dataService) throws Exception {
+        
+        TuShareService tuShareService = new TuShareServiceImpl();
+        
+        Map<String, String> param = Maps.newHashMap();
+        param.put("ts_code", tsCode);
+        //param.put("ann_date", "20190930");
+        //param.put("start_date", "20190920");
+        //param.put("end_date", "20191110");
+        //param.put("period", "20181001");
+        //param.put("type", "20181001");
+        
+        TuShareParam tuShareParam = new TuShareParam(
+                "forecast", 
+                TUSHARE_TOKEN, 
+                param, 
+                "ts_code,ann_date,end_date,type,p_change_min,p_change_max,net_profit_min,net_profit_max,last_parent_net,first_ann_date,summary,change_reason");
+        
+        ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
+        
+        Preconditions.checkArgument(result.isSuccess());
+        
+        String tableName = "forecast";
+        for(int i = 0; i < result.getModel().getItems().size(); i++) {
+            
+            Map<String, Object> insertParams = result.getModel().getItem(i);
+            
+            Map<String, Object> selectParams = new HashMap<String, Object>();
+            selectParams.put("ts_code", insertParams.get("ts_code"));
+            //selectParams.put("ann_date", insertParams.get("ann_date"));
+            //selectParams.put("float_date", insertParams.get("float_date"));
+            //selectParams.put("float_share", insertParams.get("float_share"));
+            //selectParams.put("float_ratio", insertParams.get("float_ratio"));
+            //selectParams.put("holder_name", insertParams.get("holder_name"));
+            //selectParams.put("share_type", insertParams.get("share_type"));
+            
+            ResultSupport<List<Map<String, Object>>> selectRet = dataService.select(tableName, selectParams);
+            if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+                insertParams.put("id", selectRet.getModel().get(0).get("id"));
+                ResultSupport<Long> updateRet = dataService.update(tableName, insertParams);
+                Preconditions.checkArgument(updateRet.isSuccess() && updateRet.getModel() > 0);
+            }else {
+                ResultSupport<Long> insertRet = dataService.insert(tableName, insertParams);
+                Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0);
+            }
+        }
+        
+    }
 }
