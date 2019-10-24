@@ -121,6 +121,8 @@ public interface SQLService {
         
         public static final String LastInsertId = "last_insert_id()";
         
+        public static final String GneratedKey = "GENERATED_KEY";
+        
     }
     
     public static class DateValue {
