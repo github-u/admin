@@ -443,9 +443,17 @@ public class DataServiceImpl implements DataService {
         
         //testCollection();
         
-        //testSelect();
+        testSelect();
         
-        testInsert();
+        //testInsert();
+        
+        //testInsert();
+        
+        //testInsertO();
+        
+        //testInsertO();
+        
+        //testInsert();
         
         //testDelete();
         
@@ -467,6 +475,20 @@ public class DataServiceImpl implements DataService {
         System.out.println(dataServiceImpl.insert(tableName, insertParams));
         
     }
+    
+    private static void testInsertO() throws Exception {
+        
+        String tableName = "daily_basic";
+        Map<String, Object> insertParams = new HashMap<String, Object>();
+        insertParams.put("ts_code", "a");
+        
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        System.out.println(dataServiceImpl.insert(tableName, insertParams));
+        
+    }
+    
     
     //@Test
     private static void testDelete() throws Exception {
