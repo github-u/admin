@@ -102,7 +102,7 @@ public class TuShareServiceImpl implements TuShareService {
         
         //sample();
         
-        //stockBasic();
+    	//stockBasic();
         
         //dailyBasic();
         
@@ -110,11 +110,15 @@ public class TuShareServiceImpl implements TuShareService {
         
         //income();
         
-        //shareFloat();
+        shareFloat();
         
-        forecast("000877.SZ");
+    	//forecast("000877.SZ");
+    	
+    	//monthly();
+    	
+    	//weekly();
         
-        System.out.println("");
+        //System.out.println("");
         
     }
     
@@ -268,7 +272,7 @@ public class TuShareServiceImpl implements TuShareService {
         //param.put("ann_date", "20190930");
         //param.put("start_date", "20181001");
         //param.put("end_date", "20181001");
-        param.put("period", "20161231");
+        param.put("period", "20180930");
         //param.put("report_type", "20181001");
         //param.put("comp_type", "20181001");
         
@@ -290,7 +294,7 @@ public class TuShareServiceImpl implements TuShareService {
         
         Preconditions.checkArgument(result.isSuccess());
         
-        String tableName = "income_20161231";
+        String tableName = "income_20180930";
         for(int i = 0; i < result.getModel().getItems().size(); i++) {
             
             Map<String, Object> insertParams = result.getModel().getItem(i);
@@ -336,7 +340,7 @@ public class TuShareServiceImpl implements TuShareService {
         
         for(String tsCode : tsCodes) {
             System.out.println("income=" + tsCode);
-            rateLimiter.acquire();
+            //rateLimiter.acquire();
             try {
                 shareFloat(tsCode, dataServiceImpl);
             }catch(Exception e) {
@@ -444,6 +448,96 @@ public class TuShareServiceImpl implements TuShareService {
             }
         }
         
+    }
+    
+    public static void monthly() throws Exception {
+
+        TuShareService tuShareService = new TuShareServiceImpl();
+        
+        Map<String, String> param = Maps.newHashMap();
+        //param.put("ts_code", "");//N H S
+        param.put("trade_date", "20191031");
+        //param.put("start_date", "20181001");
+        //param.put("end_date", "20181001");
+        
+        TuShareParam tuShareParam = new TuShareParam(
+                "monthly", 
+                TUSHARE_TOKEN, 
+                param, 
+                "ts_code,trade_date,close,open,high,low,pre_close,change,pct_chg,vol,amount");
+        
+        ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
+        
+        Preconditions.checkArgument(result.isSuccess());
+        
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        String tableName = "monthly";
+        for(int i = 0; i < result.getModel().getItems().size(); i++) {
+            
+            Map<String, Object> insertParams = result.getModel().getItem(i);
+            
+            Map<String, Object> selectParams = new HashMap<String, Object>();
+            selectParams.put("ts_code", insertParams.get("ts_code"));
+            selectParams.put("trade_date", insertParams.get("trade_date"));
+            ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
+            if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+                insertParams.put("id", selectRet.getModel().get(0).get("id"));
+                ResultSupport<Long> updateRet = dataServiceImpl.update(tableName, insertParams);
+                Preconditions.checkArgument(updateRet.isSuccess() && updateRet.getModel() > 0);
+            }else {
+                ResultSupport<Long> insertRet = dataServiceImpl.insert(tableName, insertParams);
+                Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0);
+            }
+        }
+        
+    
+    }
+    
+    public static void weekly() throws Exception {
+
+        TuShareService tuShareService = new TuShareServiceImpl();
+        
+        Map<String, String> param = Maps.newHashMap();
+        //param.put("ts_code", "");//N H S
+        param.put("trade_date", "20191206");
+        //param.put("start_date", "20181001");
+        //param.put("end_date", "20181001");
+        
+        TuShareParam tuShareParam = new TuShareParam(
+                "weekly", 
+                TUSHARE_TOKEN, 
+                param, 
+                "ts_code,trade_date,close,open,high,low,pre_close,change,pct_chg,vol,amount");
+        
+        ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
+        
+        Preconditions.checkArgument(result.isSuccess());
+        
+        DataServiceImpl dataServiceImpl = new DataServiceImpl();
+        dataServiceImpl.init();
+        
+        String tableName = "weekly";
+        for(int i = 0; i < result.getModel().getItems().size(); i++) {
+            
+            Map<String, Object> insertParams = result.getModel().getItem(i);
+            
+            Map<String, Object> selectParams = new HashMap<String, Object>();
+            selectParams.put("ts_code", insertParams.get("ts_code"));
+            selectParams.put("trade_date", insertParams.get("trade_date"));
+            ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
+            if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+                insertParams.put("id", selectRet.getModel().get(0).get("id"));
+                ResultSupport<Long> updateRet = dataServiceImpl.update(tableName, insertParams);
+                Preconditions.checkArgument(updateRet.isSuccess() && updateRet.getModel() > 0);
+            }else {
+                ResultSupport<Long> insertRet = dataServiceImpl.insert(tableName, insertParams);
+                Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0);
+            }
+        }
+        
+    
     }
     
     public static void forecast(String tsCode) throws Exception {

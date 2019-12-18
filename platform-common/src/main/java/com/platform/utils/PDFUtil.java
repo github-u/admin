@@ -157,6 +157,8 @@ public class PDFUtil {
         }
         
         System.out.println(JSON.toJSONString(a));
+        
+        //http://www.cninfo.com.cn/new/disclosure/detail?plate=sse&stockCode=600487&announcementId=1207049111&announcementTime=2019-10-31
     }
     
     public static class A{
