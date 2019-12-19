@@ -408,7 +408,7 @@ public class DataServiceImpl implements DataService {
         Properties properties = new Properties();
         
         properties.put("driverClassName", "com.mysql.jdbc.Driver");
-        properties.put("url", "");
+        properties.put("url", "jdbc:mysql://?useUnicode=true&characterEncoding=utf8");
         properties.put("username", "");
         properties.put("password", "");
         properties.put("filters", "stat");
