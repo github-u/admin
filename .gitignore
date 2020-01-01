@@ -30,3 +30,6 @@ hs_err_pid*
 /.project
 
 */.settings/
+
+
+platform-common/velocity.log.1
