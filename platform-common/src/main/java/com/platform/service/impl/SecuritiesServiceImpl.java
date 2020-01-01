@@ -51,16 +51,24 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 							+ "$mode=" + "get"
 							+ "$errCode=" + ResultCode.SAVE_FAIL
 							+ "$table=" + name
+							+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
 							+ "$uniqColumnNames=" + uniqColumnNames
 							+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple));
 					return;
 				}
+				
+				logger.error("title=" + "SecuritiesService"
+						+ "$mode=" + "get"
+						+ "$errCode=" + "SUC"
+						+ "$table=" + name
+						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)); 
 				counter.getAndIncrement();
 			}catch(Exception e) {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "get"
 						+ "$errCode=" + ResultCode.SAVE_EXCEPTION
 						+ "$table=" + name
+						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
 						+ "$uniqColumnNames=" + uniqColumnNames
 						+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple),
 						e);
@@ -130,6 +138,11 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		return ret.success(id);
 	}
 	
+	private String getSecuritiesCode(Map<String, Object> oneSecuritiesTuple) {
+		return oneSecuritiesTuple.get("code") != null 
+				? LangUtil.safeString(oneSecuritiesTuple.get("code"))
+				: LangUtil.safeString(oneSecuritiesTuple.get("ts_code"));
+	}
 	public static void main(String[] args) {
 		SecuritiesService securitiesService = new SecuritiesServiceImpl();
 		
