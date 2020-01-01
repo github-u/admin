@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpResponse;
@@ -33,7 +34,7 @@ import com.platform.utils.IOUtils;
 import com.platform.utils.LangUtil;
 import com.platform.utils.Pair;
 
-public class EastMoneyServiceImpl implements EastMoneyService {
+public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 
 	public static final String PUSH2HIS_PREFIX = "http://";
 	
@@ -50,35 +51,126 @@ public class EastMoneyServiceImpl implements EastMoneyService {
 	
 	private static Logger logger = LoggerFactory.getLogger(EastMoneyServiceImpl.class);
 	
+	//securitiesCode, value --> value
+	public static interface ParamsHandler extends BiFunction<String, Map<String, Object>, Map<String, String>>{};
+	
+	//securitiesCode, value --> List<Detail>
+	public static interface ResultHandler extends BiFunction<String, Map<String, Object>, List<Map<String, Object>>>{};
+	
+	private static Map<String, ParamsHandler> sourceParamsHandler = Maps.newLinkedHashMap();
+	
+	static {
+		sourceParamsHandler.put("east_money_monthly", 
+				new ParamsHandler(){
+						@Override
+						public Map<String, String> apply(String paramT, Map<String, Object> paramU) {
+							String beg = LangUtil.safeString(paramU.get("beg"));
+							String end = LangUtil.safeString(paramU.get("end"));
+							Preconditions.checkNotNull(beg);
+							Preconditions.checkNotNull(end);
+							
+							Map<String, String> params = Maps.newTreeMap();
+							params.put("secId", paramT);
+							params.put("ut", "fa5fd1943c7b386f172d6893dbfba10b");
+							params.put("fields1", "f1,f2,f3,f4,f5");
+							params.put("fields2", "f51,f52,f53,f54,f55,f56,f57,f58");
+							params.put("klt", "103");
+							params.put("fqt", "1");
+							params.put("beg", beg);
+							params.put("end", end);
+							params.put("smplmt", "460");
+							params.put("_", String.valueOf(new Date().getTime()));
+							return params;
+						}
+		});
+	}
+	
+	private static Map<String, ResultHandler> sourceResultHandler = Maps.newLinkedHashMap();
+	
+	static {
+		sourceResultHandler.put("east_money_monthly", 
+				new ResultHandler(){
+						@Override
+						public List<Map<String, Object>> apply(String paramT, Map<String, Object> paramU) {
+							
+					    	JSONArray kLines =  (JSONArray) paramU.get("klines");
+					    	
+					    	List<Map<String, Object>> model = kLines.stream().map(kline -> {
+					    		Map<String, Object> param = Maps.newHashMap();
+					    		param.put("ts_code", paramT);
+					    		param.put("code", paramU.get("code"));
+					    		param.put("name", paramU.get("name"));
+					    		
+					    		String[] elems = String.valueOf(kline).split(",");
+					    		param.put("trade_date", elems[0]);
+					    		param.put("open", elems[1]);
+					    		param.put("close", elems[2]);
+					    		param.put("high", elems[3]);
+					    		param.put("low", elems[4]);
+					    		param.put("vol", elems[5]);
+					    		param.put("amount", elems[6]);
+					    		param.put("change", elems[7]);
+					    		return param;
+					    	})
+					    	.collect(Collectors.toList());
+					    	
+					    	return model;
+						}
+		});
+	}
+
+	@Override
+	public ResultSupport<List<Map<String, Object>>> source(String sourceName, String securitiesCode,
+			String columnNames, Map<String, Object> conditions) {
+		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
+		
+		ParamsHandler paramsHander = sourceParamsHandler.get(sourceName);
+		ResultHandler resultHandler = sourceResultHandler.get(sourceName);
+		
+		Preconditions.checkNotNull(paramsHander);
+		Preconditions.checkNotNull(resultHandler);
+		
+		ResultSupport<Map<String, Object>> sourceRet = source(securitiesCode, conditions, paramsHander) ;
+		if(!sourceRet.isSuccess()) {
+			return ret.fail(sourceRet.getErrCode(), sourceRet.getErrMsg());
+		}
+		
+		List<Map<String, Object>> model = resultHandler.apply(securitiesCode, sourceRet.getModel());
+		return ret.success(model);
+	}
+	
 	@Override
 	public ResultSupport<Map<String, Object>> getKLinesOfMonth(String securitiesCode, String paramStart, String paramEnd) {
+		return source(securitiesCode, null, sourceParamsHandler.get("east_money_monthly"));
+	}
+	
+	private String eastMoneySecuritiesCode(String securitiesCode) {
+		return 	securitiesCode.startsWith("300") ? "0." + securitiesCode : 
+				securitiesCode.startsWith("000") ? "0." + securitiesCode :
+				securitiesCode.startsWith("001") ? "0." + securitiesCode :
+				securitiesCode.startsWith("002") ? "0." + securitiesCode : 
+				securitiesCode.startsWith("003") ? "0." + securitiesCode : 
+				securitiesCode.startsWith("600") ? "1." + securitiesCode : 
+				securitiesCode.startsWith("601") ? "1." + securitiesCode : 
+				securitiesCode.startsWith("603") ? "1." + securitiesCode : 
+				securitiesCode.startsWith("688") ? "1." + securitiesCode : 
+				"";
+	}
+	
+	private ResultSupport<Map<String, Object>> source(String securitiesCode, Map<String, Object> conditions, 
+			ParamsHandler paramsHandler) {
 		
-		ResultSupport<Map<String, Object>> ret = new ResultSupport<Map<String, Object>> ();
+		String secId = 	eastMoneySecuritiesCode(securitiesCode);
 		
-		String secId = 	securitiesCode.startsWith("300") ? "0." + securitiesCode : 
-						securitiesCode.startsWith("000") ? "0." + securitiesCode :
-						securitiesCode.startsWith("001") ? "0." + securitiesCode :
-						securitiesCode.startsWith("002") ? "0." + securitiesCode : 
-						securitiesCode.startsWith("003") ? "0." + securitiesCode : 
-						securitiesCode.startsWith("600") ? "1." + securitiesCode : 
-						securitiesCode.startsWith("601") ? "1." + securitiesCode : 
-						securitiesCode.startsWith("603") ? "1." + securitiesCode : 
-						securitiesCode.startsWith("688") ? "1." + securitiesCode : 
-						"";
+		Map<String, String> params = paramsHandler.apply(secId, conditions);
 		
-		Preconditions.checkArgument(!"".equals(secId), ResultCode.SECURITIES_CODE_ILLEGAL + ", " + securitiesCode);
+		String url = url(params);
 		
-		Map<String, String> param = Maps.newTreeMap();
-		param.put("secId", secId);
-		param.put("ut", "fa5fd1943c7b386f172d6893dbfba10b");
-		param.put("fields1", "f1,f2,f3,f4,f5");
-		param.put("fields2", "f51,f52,f53,f54,f55,f56,f57,f58");
-		param.put("klt", "103");
-		param.put("fqt", "1");
-		param.put("beg", paramStart);
-		param.put("end", paramEnd);
-		param.put("smplmt", "460");
-		param.put("_", String.valueOf(new Date().getTime()));
+		return source(url);
+		
+	}
+	
+	private String url(Map<String, String> param) {
 		
 		AtomicBoolean firstParam = new AtomicBoolean(Boolean.TRUE);
 
@@ -97,17 +189,23 @@ public class EastMoneyServiceImpl implements EastMoneyService {
 					return a;
 				});
 		
-		HttpGet httpGet = new HttpGet(url.toString());
-        
+		return url.toString();
+		
+	}
+	
+	public ResultSupport<Map<String, Object>> source(String url) {
+		ResultSupport<Map<String, Object>> ret = new ResultSupport<Map<String, Object>> ();
+		
+		HttpGet httpGet = new HttpGet(url);
         HttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpResponse response = httpClient.execute(httpGet);
             if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 logger.error("title=" + "EastMoneyService"
                         + "$mode=" + "getKLinesOfMonth"
-                        + "$errCode=" + ResultCode.HTTP_STATUS_ILLEGAL
+                        + "$errCode=" + EastMoneyService.ResultCode.HTTP_STATUS_ILLEGAL
                         + "$errMsg=" + JSON.toJSONString(response.getStatusLine()));
-                return ret.fail(ResultCode.HTTP_STATUS_ILLEGAL, JSON.toJSONString(response.getStatusLine()));
+                return ret.fail(EastMoneyService.ResultCode.HTTP_STATUS_ILLEGAL, JSON.toJSONString(response.getStatusLine()));
             }
             
             String httpEntity = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
@@ -120,9 +218,9 @@ public class EastMoneyServiceImpl implements EastMoneyService {
         } catch (Exception e) {
             logger.error("title=" + "EastMoneyService"
                         + "$mode=" + "getKLinesOfMonth"
-                        + "$errCode=" + ResultCode.HTTP_CLIENT_EXECUTE_EXCEPTION
+                        + "$errCode=" + EastMoneyService.ResultCode.HTTP_CLIENT_EXECUTE_EXCEPTION
                         + "$errMsg=", e);
-            return ret.fail(ResultCode.HTTP_CLIENT_EXECUTE_EXCEPTION, e.getMessage());
+            return ret.fail(EastMoneyService.ResultCode.HTTP_CLIENT_EXECUTE_EXCEPTION, e.getMessage());
         } finally {
             HttpClientUtils.closeQuietly(httpClient);
         }
@@ -229,4 +327,6 @@ public class EastMoneyServiceImpl implements EastMoneyService {
         	
         }
     }
+
+	
 }
