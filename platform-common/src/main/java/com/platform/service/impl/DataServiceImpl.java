@@ -25,7 +25,9 @@ import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
 import com.google.common.base.Preconditions;
 import com.mysql.jdbc.Statement;
 import com.platform.entity.ResultSupport;
+import com.platform.entity.properties.PropertieKeys;
 import com.platform.service.DataService;
+import com.platform.service.PropertyService;
 import com.platform.service.SQLService;
 import com.platform.service.SQLService.Constans;
 import com.platform.service.SQLService.PreSetColumn;
@@ -45,6 +47,9 @@ public class DataServiceImpl implements DataService {
     
     @Getter
     private SQLService sqlService;
+    
+    @Getter
+    private PropertyService propertyService;
     
     @Override
     public ResultSupport<List<Map<String, Object>>> select(String tableName, Map<String, Object> selectParams) {
@@ -384,7 +389,7 @@ public class DataServiceImpl implements DataService {
         Properties properties = new Properties();
         
         properties.put("driverClassName", "org.h2.Driver");
-        properties.put("url", "jdbc:h2:/Users/suxiong.sx/increasement.x/working_db/h2/20190830");
+        properties.put("url", "");
         properties.put("username", "sa");
         properties.put("password", "sa");
         properties.put("filters", "stat");
@@ -403,14 +408,14 @@ public class DataServiceImpl implements DataService {
         return properties;
     }
     
-    public static Properties mySQLDataSourceProperties() {
+    public Properties mySQLDataSourceProperties() {
         
         Properties properties = new Properties();
         
         properties.put("driverClassName", "com.mysql.jdbc.Driver");
-        properties.put("url", "jdbc:mysql://?useUnicode=true&characterEncoding=utf8");
-        properties.put("username", "");
-        properties.put("password", "");
+        properties.put("url", propertyService.get(PropertieKeys.Mysql.URL).getModel());
+        properties.put("username", propertyService.get(PropertieKeys.Mysql.USER).getModel());
+        properties.put("password", propertyService.get(PropertieKeys.Mysql.PASSWD).getModel());
         properties.put("filters", "stat");
         properties.put("initialSize", "2");
         properties.put("maxActive", "300");
@@ -443,7 +448,7 @@ public class DataServiceImpl implements DataService {
         
         //testCollection();
         
-        testSelect();
+        //testSelect();
         
         //testInsert();
         

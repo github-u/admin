@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -23,21 +25,25 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.RateLimiter;
 import com.platform.entity.ResultSupport;
+import com.platform.entity.properties.PropertieKeys;
 import com.platform.entity.tushare.TuShareData;
 import com.platform.entity.tushare.TuShareParam;
 import com.platform.entity.tushare.TuShareResult;
 import com.platform.service.DataService;
+import com.platform.service.PropertyService;
 import com.platform.service.SQLService.VelocityContextKey;
 import com.platform.service.TuShareService;
 import com.platform.utils.BeanUtil;
 import com.platform.utils.IOUtils;
 import com.platform.utils.LangUtil;
 
+import lombok.Setter;
+
 public class TuShareServiceImpl implements TuShareService {
     
     public static final String TUSHARE_URL = "http://api.tushare.pro";
     
-    public static final String TUSHARE_TOKEN = "";
+    public static String TUSHARE_TOKEN = "";
     
     private static Logger logger = LoggerFactory.getLogger(TuShareServiceImpl.class);
     
@@ -48,6 +54,15 @@ public class TuShareServiceImpl implements TuShareService {
         }
     };
     */
+    
+    @Resource @Setter
+    private PropertyService propertyService; 
+    
+    public void init() {
+    	if("".equals(TUSHARE_TOKEN)) {
+    		TUSHARE_TOKEN = propertyService.get(PropertieKeys.TuShare.TOKEN).getModel();
+    	}
+    }
     
     @Override
     public ResultSupport<TuShareData> getData(TuShareParam tuShareParam){
@@ -102,9 +117,9 @@ public class TuShareServiceImpl implements TuShareService {
         
         //sample();
         
-    	//stockBasic();
+    	stockBasic();
         
-        //dailyBasic();
+    	//dailyBasic();
         
         //income();
         
@@ -118,7 +133,9 @@ public class TuShareServiceImpl implements TuShareService {
     	
     	//weekly();
     	
-    	topInst();
+    	//topInst();
+    	
+    	top10FloatHolders();
         
         //System.out.println("");
         
@@ -213,6 +230,7 @@ public class TuShareServiceImpl implements TuShareService {
             
             Map<String, Object> selectParams = new HashMap<String, Object>();
             selectParams.put("ts_code", insertParams.get("ts_code"));
+            selectParams.put("trade_date", insertParams.get("trade_date"));
             ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
             if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
                 insertParams.put("id", selectRet.getModel().get(0).get("id"));
@@ -509,7 +527,7 @@ public class TuShareServiceImpl implements TuShareService {
         
         Map<String, String> param = Maps.newHashMap();
         //param.put("ts_code", "");//N H S
-        param.put("trade_date", "20191206");
+        param.put("trade_date", "20191227");
         //param.put("start_date", "20181001");
         //param.put("end_date", "20181001");
         
@@ -548,15 +566,6 @@ public class TuShareServiceImpl implements TuShareService {
     
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
     public static void topInst() throws Exception {
     	
     	List<String> tsCodes = Lists.newArrayList();
@@ -579,11 +588,11 @@ public class TuShareServiceImpl implements TuShareService {
     			.filter(tsCode -> tsCode != null)
     			.collect(Collectors.toList());
     	
-    	RateLimiter rateLimiter = RateLimiter.create(0.4);
+    	RateLimiter rateLimiter = RateLimiter.create(3);
     	
     	for(String tsCode : tsCodes) {
     		System.out.println("topInst=" + tsCode);
-    		//rateLimiter.acquire();
+    		rateLimiter.acquire();
     		try {
     			topInst(tsCode, dataServiceImpl);
             }catch(Exception e) {
@@ -599,7 +608,7 @@ public class TuShareServiceImpl implements TuShareService {
 
     	Map<String, String> param = Maps.newHashMap();
     	param.put("ts_code", tsCode);
-    	param.put("trade_date", "20191218");
+    	param.put("trade_date", "20191219");
 
     	TuShareParam tuShareParam = new TuShareParam(
     			"top_inst", 
@@ -609,7 +618,7 @@ public class TuShareServiceImpl implements TuShareService {
 
     	ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
 
-    	Preconditions.checkArgument(result.isSuccess());
+    	Preconditions.checkArgument(result.isSuccess(), result.getErrCode() + "$" + result.getErrMsg());
 
     	/**
         for(int i = result.getModel().getItems().size() - 1; i >=0 ; i--) {
@@ -638,6 +647,92 @@ public class TuShareServiceImpl implements TuShareService {
     		}else {
     			ResultSupport<Long> insertRet = dataService.insert(tableName, insertParams);
     			Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0);
+    		}
+    	}
+    }
+    
+public static void top10FloatHolders() throws Exception {
+    	
+    	List<String> tsCodes = Lists.newArrayList();
+    	
+    	String tableName = "stock_basic";
+    	
+    	DataServiceImpl dataServiceImpl = new DataServiceImpl();
+    	dataServiceImpl.init();
+    	
+    	Map<String, Object> selectParams = new HashMap<String, Object>();
+    	selectParams.put(VelocityContextKey.Limit, 4000);
+    	ResultSupport<List<Map<String, Object>>> selectRet = dataServiceImpl.select(tableName, selectParams);
+    	
+    	Preconditions.checkArgument(selectRet.isSuccess());
+    	
+    	tsCodes = selectRet.getModel().stream()
+    			.map(item->{
+    				return LangUtil.convert(item.get("ts_code"), String.class);
+    			})
+    			.filter(tsCode -> tsCode != null)
+    			.collect(Collectors.toList());
+    	
+    	RateLimiter rateLimiter = RateLimiter.create(3);
+    	
+    	for(String tsCode : tsCodes) {
+    		System.out.println("top10FloatHolders=" + tsCode);
+    		//rateLimiter.acquire();
+    		try {
+    			top10FloatHolders(tsCode, dataServiceImpl);
+            }catch(Exception e) {
+                System.out.println("top10FloatHolders=" + tsCode + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public static void top10FloatHolders(String tsCode, DataServiceImpl dataService) throws Exception {
+
+    	TuShareService tuShareService = new TuShareServiceImpl();
+
+    	Map<String, String> param = Maps.newHashMap();
+    	param.put("ts_code", tsCode);
+    	param.put("start_date", "20190701");
+    	param.put("end_date", "20191031");
+
+    	TuShareParam tuShareParam = new TuShareParam(
+    			"top10_floatholders", 
+    			TUSHARE_TOKEN, 
+    			param, 
+    			"ts_code,ann_date,end_date,holder_name,hold_amount");
+
+    	ResultSupport<TuShareData> result = tuShareService.getData(tuShareParam);
+
+    	Preconditions.checkArgument(result.isSuccess(), result.getErrCode() + "$" + result.getErrMsg());
+
+    	/**
+        for(int i = result.getModel().getItems().size() - 1; i >=0 ; i--) {
+            Map<String, Object> itemElem  = result.getModel().getItem(i);
+            if(!"首发原始股".equals(itemElem.get("share_type"))) {
+                result.getModel().getItems().remove(i);
+            }
+        }
+    	 */
+
+    	String tableName = "top10_floatholders";
+    	for(int i = 0; i < result.getModel().getItems().size(); i++) {
+
+    		Map<String, Object> insertParams = result.getModel().getItem(i);
+
+    		Map<String, Object> selectParams = new HashMap<String, Object>();
+    		selectParams.put("ts_code", insertParams.get("ts_code"));
+    		selectParams.put("end_date", insertParams.get("end_date"));
+    		selectParams.put("holder_name", insertParams.get("holder_name"));
+
+    		ResultSupport<List<Map<String, Object>>> selectRet = dataService.select(tableName, selectParams);
+    		if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+    			insertParams.put("id", selectRet.getModel().get(0).get("id"));
+    			ResultSupport<Long> updateRet = dataService.update(tableName, insertParams);
+    			Preconditions.checkArgument(updateRet.isSuccess() && updateRet.getModel() > 0);
+    		}else {
+    			ResultSupport<Long> insertRet = dataService.insert(tableName, insertParams);
+    			Preconditions.checkArgument(insertRet.isSuccess() && insertRet.getModel() > 0, JSON.toJSONString(insertRet));
     		}
     	}
     }
