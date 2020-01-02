@@ -373,6 +373,9 @@ public class DataServiceImpl implements DataService {
             return ;
         }
         
+        propertyService = new PropertyServiceImpl();
+        ((PropertyServiceImpl)propertyService).init();
+        
         Properties properties = mySQLDataSourceProperties();
         
         druidDataSource = DruidDataSourceFactory.createDataSource(properties);
@@ -380,6 +383,7 @@ public class DataServiceImpl implements DataService {
         sqlService = new SQLServiceImpl();
         ((SQLServiceImpl)sqlService).init();
         
+       
         inited.compareAndSet(false, true);
         
     }

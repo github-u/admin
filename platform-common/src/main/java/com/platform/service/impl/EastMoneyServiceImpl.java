@@ -33,6 +33,7 @@ import com.platform.service.SQLService.VelocityContextKey;
 import com.platform.utils.IOUtils;
 import com.platform.utils.LangUtil;
 import com.platform.utils.Pair;
+import com.platform.utils.SecuritiesUtils;
 
 public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 
@@ -97,7 +98,10 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 					    	
 					    	List<Map<String, Object>> model = kLines.stream().map(kline -> {
 					    		Map<String, Object> param = Maps.newHashMap();
-					    		param.put("ts_code", paramT);
+					    		param.put("ts_code", 
+					    				SecuritiesUtils.getSecuritiesType(paramT) == 0 ? "SZ." + paramT :
+					    				SecuritiesUtils.getSecuritiesType(paramT) == 1 ? "SH." + paramT :
+					    				"U." + paramT);
 					    		param.put("code", paramU.get("code"));
 					    		param.put("name", paramU.get("name"));
 					    		
@@ -145,16 +149,11 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 	}
 	
 	private String eastMoneySecuritiesCode(String securitiesCode) {
-		return 	securitiesCode.startsWith("300") ? "0." + securitiesCode : 
-				securitiesCode.startsWith("000") ? "0." + securitiesCode :
-				securitiesCode.startsWith("001") ? "0." + securitiesCode :
-				securitiesCode.startsWith("002") ? "0." + securitiesCode : 
-				securitiesCode.startsWith("003") ? "0." + securitiesCode : 
-				securitiesCode.startsWith("600") ? "1." + securitiesCode : 
-				securitiesCode.startsWith("601") ? "1." + securitiesCode : 
-				securitiesCode.startsWith("603") ? "1." + securitiesCode : 
-				securitiesCode.startsWith("688") ? "1." + securitiesCode : 
-				"";
+		
+		return LangUtil.safeString(SecuritiesUtils.getSecuritiesType(securitiesCode)) 
+				+ "." 
+				+ securitiesCode;
+		
 	}
 	
 	private ResultSupport<Map<String, Object>> source(String securitiesCode, Map<String, Object> conditions, 
@@ -287,7 +286,6 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
         Map<String, Object> kLinesOfMonth = kLinesOfMonthRet.getModel();
         //List<Map<String, Object>> kLines = (List<Map<String, Object>>) kLinesOfMonth.get("klines");
 
-    	@SuppressWarnings("unchecked")
     	JSONArray kLines =  (JSONArray) kLinesOfMonth.get("klines");
     	
     	List<Map<String, Object>> insertKlines = kLines.stream().map(kline -> {

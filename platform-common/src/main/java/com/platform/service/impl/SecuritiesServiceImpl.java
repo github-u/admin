@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.service.DataService;
 import com.platform.service.SecuritiesService;
@@ -143,21 +144,25 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				? LangUtil.safeString(oneSecuritiesTuple.get("code"))
 				: LangUtil.safeString(oneSecuritiesTuple.get("ts_code"));
 	}
-	public static void main(String[] args) {
+	
+	public static void main(String[] args) throws Exception {
 		SecuritiesService securitiesService = new SecuritiesServiceImpl();
 		
 		DataService dataService = new DataServiceImpl();
+		((DataServiceImpl)dataService).init();
 		((SecuritiesServiceImpl)securitiesService).setDataService(dataService);
 		
 		SourceService eastMoneySourceService = new EastMoneyServiceImpl();
 		((SecuritiesServiceImpl)securitiesService).setEastMoneySourceService(eastMoneySourceService);
 		
-		String type = "";
-		String name = "";
-		String securitiesCode = "";
+		String type = Source.EAST_MONEY;
+		String name = "east_money_monthly";
+		String securitiesCode = "000001";
 		String columnNames = "";
-		String uniqColumnNames = "";
-		Map<String, Object> conditions = null;
+		String uniqColumnNames = "ts_code,trade_date";
+		Map<String, Object> conditions = Maps.newLinkedHashMap();
+		conditions.put("beg", "20190101");
+		conditions.put("end", "20191231");
 
 		ResultSupport<Long> ret = ((SecuritiesServiceImpl)securitiesService).get(type, name, securitiesCode, columnNames, uniqColumnNames, conditions);
 		
