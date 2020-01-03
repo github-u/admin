@@ -7,6 +7,10 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.DailyRollingFileAppender;
+import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +36,12 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesServiceImpl.class);
 	
-	public ResultSupport<Long> get(String type, String name, String securitiesCode, 
+	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
 		
-		ResultSupport<List<Map<String, Object>>> dataRet = source(type, name, securitiesCode, columnNames, conditions);
+		ResultSupport<List<Map<String, Object>>> dataRet = source(type, tableName, securitiesCode, columnNames, conditions);
 		if(!dataRet.isSuccess()) {
 			return ret.fail(dataRet.getErrCode(), dataRet.getErrMsg());
 		}
@@ -46,12 +50,12 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		dataRet.getModel().parallelStream()
 		.forEach(oneSecuritiesTuple->{
 			try {
-				ResultSupport<Long> saveRet = save(name, oneSecuritiesTuple, uniqColumnNames);
+				ResultSupport<Long> saveRet = save(tableName, oneSecuritiesTuple, uniqColumnNames);
 				if(!saveRet.isSuccess()) {
 					logger.error("title=" + "SecuritiesService"
 							+ "$mode=" + "get"
 							+ "$errCode=" + ResultCode.SAVE_FAIL
-							+ "$table=" + name
+							+ "$table=" + tableName
 							+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
 							+ "$uniqColumnNames=" + uniqColumnNames
 							+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple));
@@ -61,14 +65,14 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "get"
 						+ "$errCode=" + "SUC"
-						+ "$table=" + name
+						+ "$table=" + tableName
 						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)); 
 				counter.getAndIncrement();
 			}catch(Exception e) {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "get"
 						+ "$errCode=" + ResultCode.SAVE_EXCEPTION
-						+ "$table=" + name
+						+ "$table=" + tableName
 						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
 						+ "$uniqColumnNames=" + uniqColumnNames
 						+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple),
@@ -146,6 +150,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	}
 	
 	public static void main(String[] args) throws Exception {
+		
 		SecuritiesService securitiesService = new SecuritiesServiceImpl();
 		
 		DataService dataService = new DataServiceImpl();
@@ -163,10 +168,28 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		Map<String, Object> conditions = Maps.newLinkedHashMap();
 		conditions.put("beg", "20190101");
 		conditions.put("end", "20191231");
-
+		
+		BasicConfigurator.configure(appender());
 		ResultSupport<Long> ret = ((SecuritiesServiceImpl)securitiesService).get(type, name, securitiesCode, columnNames, uniqColumnNames, conditions);
 		
 		System.out.println(ret);
+		
+	}
+	
+	public static Appender appender() {
+		DailyRollingFileAppender appender = new DailyRollingFileAppender();
+		appender.setFile("D:\\working_log\\securities.log");
+		appender.setDatePattern("'.'yyyy-MM-dd'.log'");
+		appender.setAppend(Boolean.TRUE);
+		appender.setThreshold(Level.INFO);
+		appender.setEncoding("UTF-8");
+		appender.setImmediateFlush(Boolean.TRUE);
+		
+		org.apache.log4j.PatternLayout layout = new org.apache.log4j.PatternLayout();
+		layout.setConversionPattern("%d{yyyy-MM-dd HH:mm:ss SSS}|%5p|%F.%M:%L|%m%n");
+		appender.setLayout(layout);
+		
+		return appender;
 		
 	}
 }
