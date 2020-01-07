@@ -326,5 +326,11 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
         }
     }
 
+	@Override
+	public ResultSupport<List<Map<String, Object>>> source(String sourceName, String columnNames,
+			Map<String, Object> conditions) {
+		throw new RuntimeException("Not support yet");
+	}
+
 	
 }

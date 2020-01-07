@@ -14,6 +14,12 @@ public interface SourceService {
 			Map<String, Object> conditions
 			);
 	
+	public ResultSupport<List<Map<String, Object>>> source(
+			String sourceName, 
+			String columnNames, 
+			Map<String, Object> conditions
+			);
+	
 	public static final class Source{
 		
 		public static final String EAST_MONEY = "EAST_MONEY";

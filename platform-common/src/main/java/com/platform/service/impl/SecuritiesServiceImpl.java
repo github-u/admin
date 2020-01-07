@@ -36,6 +36,10 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesServiceImpl.class);
 	
+	public void securitiesCodes() {
+		
+	}
+	
 	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
 		
@@ -92,7 +96,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 			sourceService = eastMoneySourceService;
 			
 		}
-		Preconditions.checkNotNull(type);
+		Preconditions.checkNotNull(sourceService);
 		
 		return sourceService.source(sourceName, securitiesCode, columnNames, conditions);
 		

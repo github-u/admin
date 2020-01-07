@@ -39,7 +39,7 @@ import com.platform.utils.LangUtil;
 
 import lombok.Setter;
 
-public class TuShareServiceImpl implements TuShareService {
+public class TuShareServiceImpl implements TuShareService, SourceService {
     
     public static final String TUSHARE_URL = "http://api.tushare.pro";
     
@@ -67,6 +67,20 @@ public class TuShareServiceImpl implements TuShareService {
     	}
     }
     
+	@Override
+	public ResultSupport<List<Map<String, Object>>> source(String sourceName, String securitiesCode, String columnNames,
+			Map<String, Object> conditions) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResultSupport<List<Map<String, Object>>> source(String sourceName, String columnNames,
+			Map<String, Object> conditions) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
     @Override
     public ResultSupport<TuShareData> getData(TuShareParam tuShareParam){
         
@@ -797,4 +811,5 @@ public static void top10FloatHolders() throws Exception {
         }
         
     }
+
 }
