@@ -58,7 +58,10 @@ public class TuShareServiceImpl implements TuShareService {
     @Resource @Setter
     private PropertyService propertyService; 
     
-    public void init() {
+    public void init() throws Exception {
+    	propertyService = new PropertyServiceImpl();
+        ((PropertyServiceImpl)propertyService).init();
+        
     	if("".equals(TUSHARE_TOKEN)) {
     		TUSHARE_TOKEN = propertyService.get(PropertieKeys.TuShare.TOKEN).getModel();
     	}
@@ -117,7 +120,7 @@ public class TuShareServiceImpl implements TuShareService {
         
         //sample();
         
-    	stockBasic();
+    	//stockBasic();
         
     	//dailyBasic();
         
@@ -131,11 +134,11 @@ public class TuShareServiceImpl implements TuShareService {
     	
     	//monthly();
     	
-    	//weekly();
+    	weekly();
     	
     	//topInst();
     	
-    	top10FloatHolders();
+    	//top10FloatHolders();
         
         //System.out.println("");
         
@@ -524,10 +527,12 @@ public class TuShareServiceImpl implements TuShareService {
     public static void weekly() throws Exception {
 
         TuShareService tuShareService = new TuShareServiceImpl();
+        ((TuShareServiceImpl)tuShareService).init();
+        
         
         Map<String, String> param = Maps.newHashMap();
         //param.put("ts_code", "");//N H S
-        param.put("trade_date", "20191227");
+        param.put("trade_date", "20200103");
         //param.put("start_date", "20181001");
         //param.put("end_date", "20181001");
         

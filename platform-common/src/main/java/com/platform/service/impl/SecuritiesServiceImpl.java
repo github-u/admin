@@ -179,7 +179,6 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	public static Appender appender() {
 		DailyRollingFileAppender appender = new DailyRollingFileAppender();
 		appender.setFile("D:\\working_log\\securities.log");
-		appender.setDatePattern("'.'yyyy-MM-dd'.log'");
 		appender.setAppend(Boolean.TRUE);
 		appender.setThreshold(Level.INFO);
 		appender.setEncoding("UTF-8");
@@ -189,6 +188,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		layout.setConversionPattern("%d{yyyy-MM-dd HH:mm:ss SSS}|%5p|%F.%M:%L|%m%n");
 		appender.setLayout(layout);
 		
+		appender.activateOptions();
 		return appender;
 		
 	}
