@@ -3,7 +3,9 @@ package com.platform.service.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 
@@ -36,6 +38,7 @@ import com.platform.service.TuShareService;
 import com.platform.utils.BeanUtil;
 import com.platform.utils.IOUtils;
 import com.platform.utils.LangUtil;
+import com.platform.utils.Pair;
 
 import lombok.Setter;
 
@@ -77,8 +80,37 @@ public class TuShareServiceImpl implements TuShareService, SourceService {
 	@Override
 	public ResultSupport<List<Map<String, Object>>> source(String sourceName, String columnNames,
 			Map<String, Object> conditions) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
+		
+        Map<String, String> param = 
+        		conditions.entrySet().stream()
+        		.map(kv -> {
+        			return Pair.of(kv.getKey(), LangUtil.safeString(kv.getValue()));
+        		})
+        		.collect(Collectors.toMap(pair->pair.fst, pair->pair.snd));
+        
+        TuShareParam tuShareParam = new TuShareParam(
+        		sourceName, 
+                TUSHARE_TOKEN, 
+                param, 
+                columnNames);
+        
+        ResultSupport<TuShareData> getDataRet = getData(tuShareParam);
+        if(!getDataRet.isSuccess()) {
+        	return ret.fail(getDataRet.getErrCode(), getDataRet.getErrMsg());
+        }
+        
+        TuShareData tuShareData = getDataRet.getModel();
+        
+        List<Map<String, Object>> model = 
+        		IntStream.range(0, tuShareData.getItems().size())
+        		.mapToObj(index -> {
+        			return tuShareData.getItem(index);
+        		})
+        		.collect(Collectors.toList());
+        
+		return ret.success(model);
 	}
 	
     @Override

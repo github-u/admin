@@ -34,10 +34,63 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	@Resource @Setter
 	private SourceService eastMoneySourceService;
 	
+	@Resource @Setter
+	private SourceService tuShareServcie;
+	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesServiceImpl.class);
 	
 	public void securitiesCodes() {
 		
+	}
+	
+	public ResultSupport<Long> getTotal(String type, String tableName, 
+			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
+		
+		ResultSupport<Long> ret = new ResultSupport<Long>();
+		
+		ResultSupport<List<Map<String, Object>>> dataRet = source(type, tableName, columnNames, conditions);
+		if(!dataRet.isSuccess()) {
+			return ret.fail(dataRet.getErrCode(), dataRet.getErrMsg());
+		}
+		
+		AtomicLong counter = new AtomicLong(0L);
+		dataRet.getModel().parallelStream()
+		.forEach(oneSecuritiesTuple->{
+			try {
+				ResultSupport<Long> saveRet = save(tableName, oneSecuritiesTuple, uniqColumnNames);
+				if(!saveRet.isSuccess()) {
+					logger.error("title=" + "SecuritiesService"
+							+ "$mode=" + "getTotal"
+							+ "$errCode=" + ResultCode.SAVE_FAIL
+							+ "$table=" + tableName
+							+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
+							+ "$id=" +  oneSecuritiesTuple.get("id")
+							+ "$uniqColumnNames=" + uniqColumnNames
+							+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple));
+					return;
+				}
+				
+				logger.error("title=" + "SecuritiesService"
+						+ "$mode=" + "getTotal"
+						+ "$errCode=" + "SUC"
+						+ "$table=" + tableName
+						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)
+						+ "$id=" +  oneSecuritiesTuple.get("id")); 
+				counter.getAndIncrement();
+			}catch(Exception e) {
+				logger.error("title=" + "SecuritiesService"
+						+ "$mode=" + "getTotal"
+						+ "$errCode=" + ResultCode.SAVE_EXCEPTION
+						+ "$table=" + tableName
+						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
+						+ "$id=" +  oneSecuritiesTuple.get("id")
+						+ "$uniqColumnNames=" + uniqColumnNames
+						+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple),
+						e);
+			}
+		});
+		
+		return ret.success(counter.get());
 	}
 	
 	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
@@ -61,6 +114,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 							+ "$errCode=" + ResultCode.SAVE_FAIL
 							+ "$table=" + tableName
 							+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
+							+ "$id=" +  oneSecuritiesTuple.get("id")
 							+ "$uniqColumnNames=" + uniqColumnNames
 							+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple));
 					return;
@@ -70,14 +124,16 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 						+ "$mode=" + "get"
 						+ "$errCode=" + "SUC"
 						+ "$table=" + tableName
-						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)); 
+						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)
+						+ "$id=" +  oneSecuritiesTuple.get("id")); 
 				counter.getAndIncrement();
 			}catch(Exception e) {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "get"
 						+ "$errCode=" + ResultCode.SAVE_EXCEPTION
 						+ "$table=" + tableName
-						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
+						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)
+						+ "$id=" +  oneSecuritiesTuple.get("id")
 						+ "$uniqColumnNames=" + uniqColumnNames
 						+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple),
 						e);
@@ -88,18 +144,36 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		
 	}
 	
+	public ResultSupport<List<Map<String, Object>>> source(String type, String sourceName,  
+			String columnNames, Map<String, Object> conditions) {
+		
+		SourceService sourceService = sourceService(type);
+		
+		return sourceService.source(sourceName, columnNames, conditions);
+		
+	}
+	
 	public ResultSupport<List<Map<String, Object>>> source(String type, String sourceName, String securitiesCode, 
 			String columnNames, Map<String, Object> conditions) {
 		
-		SourceService sourceService = null;
-		if(Source.EAST_MONEY.equals(type)) {
-			sourceService = eastMoneySourceService;
-			
-		}
-		Preconditions.checkNotNull(sourceService);
+		SourceService sourceService = sourceService(type);
 		
 		return sourceService.source(sourceName, securitiesCode, columnNames, conditions);
 		
+	}
+	
+	private SourceService sourceService(String type) {
+		SourceService sourceService = null;
+		
+		if(Source.EAST_MONEY.equals(type)) {
+			sourceService = eastMoneySourceService;
+			
+		}else if(Source.TU_SHARE.equals(type)) {
+			sourceService = tuShareServcie;
+		}
+		Preconditions.checkNotNull(sourceService);
+		
+		return sourceService;
 	}
 	
 	public ResultSupport<Long> save(String tableName, Map<String, Object> params, String uniqColumnNames) {
@@ -163,6 +237,10 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		
 		SourceService eastMoneySourceService = new EastMoneyServiceImpl();
 		((SecuritiesServiceImpl)securitiesService).setEastMoneySourceService(eastMoneySourceService);
+		
+		SourceService tuShareSourceService = new TuShareServiceImpl();
+		((TuShareServiceImpl)tuShareSourceService).init();
+		((SecuritiesServiceImpl)securitiesService).setTuShareServcie(tuShareSourceService);
 		
 		String type = Source.EAST_MONEY;
 		String name = "east_money_monthly";
