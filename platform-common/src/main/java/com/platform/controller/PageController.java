@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collector;
 
-@Controller
+//@Controller
 public class PageController {
     
     private DataService dataService;
