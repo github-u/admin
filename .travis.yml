@@ -1,0 +1,17 @@
+language: java
+jdk:
+- openjdk8
+cache:
+  directories:
+  - "$HOME/.m2/repository"
+script:
+- mvn clean package -DskipTests=true
+addons:
+  ssh_known_hosts:
+  - 118.89.221.114:22
+after_success:
+- chmod 600 ~/.ssh/id_rsa
+- ssh admin@118.89.221.114 -o StrictHostKeyChecking=no 'chmod u+x ~/git-repositories/intergration/platform_framwork.sh &  ~/git-repositories/intergration/platform_framework.sh >> ~/admin/admin.log 2>&1 &'
+before_install:
+- openssl aes-256-cbc -K $encrypted_08295f691dea_key -iv $encrypted_08295f691dea_iv
+  -in id_rsa.enc -out ~/.ssh/id_rsa -d
