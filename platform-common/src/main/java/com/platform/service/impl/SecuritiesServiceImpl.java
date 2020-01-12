@@ -1,5 +1,7 @@
 package com.platform.service.impl;
 
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,6 +16,7 @@ import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.filter.Filter;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -43,7 +46,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		
 	}
 	
-	public ResultSupport<Long> getTotal(String type, String tableName, 
+	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
@@ -274,4 +277,5 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		return appender;
 		
 	}
+	
 }
