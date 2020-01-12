@@ -15,4 +15,4 @@ after_success:
   &  ~/git-repositories/intergration/platform_framework.sh >> ~/admin/admin.log 2>&1 &'
 before_install:
 - openssl aes-256-cbc -K $encrypted_e707fe4f2edc_key -iv $encrypted_e707fe4f2edc_iv
-  -in id_rsa.enc -out ~\/.ssh/id_rsa -d
+  -in id_rsa.enc -out ~/.ssh/id_rsa -d
