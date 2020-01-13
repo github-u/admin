@@ -50,6 +50,7 @@
         <lombok.version>1.18.4</lombok.version>
         <mybatis-plus.version>3.1.0</mybatis-plus.version>
         <alipay-sdk.version>3.6.0.ALL</alipay-sdk.version>
+        <xxl.job.core.version>2.1.2</xxl.job.core.version>
     </properties>
 
     <!-- 阿里云maven仓库 -->
@@ -308,7 +309,12 @@
             <artifactId>QLExpress</artifactId>
             <version>3.2.0</version>
         </dependency>
-
+        <!-- xxl-job-core -->
+		<dependency>
+			<groupId>com.xuxueli</groupId>
+			<artifactId>xxl-job-core</artifactId>
+			<version>${xxl.job.core.version}</version>
+		</dependency>
 	<dependency>
 	  <groupId>com.google.guava</groupId>
 	  <artifactId>guava</artifactId>

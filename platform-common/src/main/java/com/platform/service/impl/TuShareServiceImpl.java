@@ -578,7 +578,7 @@ public class TuShareServiceImpl implements TuShareService, SourceService {
         
         Map<String, String> param = Maps.newHashMap();
         //param.put("ts_code", "");//N H S
-        param.put("trade_date", "20200103");
+        param.put("trade_date", "20200110");
         //param.put("start_date", "20181001");
         //param.put("end_date", "20181001");
         

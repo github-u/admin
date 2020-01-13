@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context
 	xsi:schemaLocation="
         http://www.springframework.org/schema/beans 
-        http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
-
+        http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+        http://www.springframework.org/schema/context
+       	http://www.springframework.org/schema/context/spring-context.xsd">
+        
 	<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="dataSource" ref="dataSource" />
         <property name="quartzProperties">
@@ -42,5 +45,20 @@
         <property name="autoStartup" value="true" />
 
     </bean>
+	
+    <!-- ********************************* 基础配置 ********************************* -->
+	<!-- 配置01、JobHandler 扫描路径 -->
+	<context:component-scan base-package="com.platform.task" />
+
+	<!-- 配置02、执行器 -->
+	<bean id="xxlJobSpringExecutor" class="com.xxl.job.core.executor.impl.XxlJobSpringExecutor" >
+		<!-- 执行器注册中心地址[选填]，为空则关闭自动注册 -->
+		<property name="adminAddresses" value="http://118.89.221.114:9090/xxl-job-admin" />
+		<!-- 执行器AppName[选填]，为空则关闭自动注册 -->
+		<property name="appName" value="platform-shop" />
+		
+		<property name="logPath" value="/home/admin/admin/job.task" />
+		
+	</bean>
 	
 </beans>
