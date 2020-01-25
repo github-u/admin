@@ -36,12 +36,14 @@ public class SampleXxlJob {
      */
     @XxlJob("localDemoJobHandler")
     public ReturnT<String> demoJobHandler(String param) throws Exception {
-        XxlJobLogger.log("XXL-JOB, Hello World.");
+        XxlJobLogger.log("XXL-JOB, Hello World Test.");
 
         for (int i = 0; i < 5; i++) {
             XxlJobLogger.log("beat at:" + i);
             TimeUnit.SECONDS.sleep(2);
         }
+        
+        XxlJobLogger.log("XXL-JOB, Hello World Test.");
         return ReturnT.SUCCESS;
     }
 
