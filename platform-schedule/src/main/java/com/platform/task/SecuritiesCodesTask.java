@@ -4,23 +4,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.xxl.job.core.biz.model.ReturnT;
-import com.xxl.job.core.handler.IJobHandler;
-import com.xxl.job.core.handler.annotation.JobHandler;
+import com.platform.entity.ResultSupport;
+import com.platform.jobx.domain.SimpleTaskParam;
+import com.platform.jobx.service.SimpleTask;
 
 @Component
-@JobHandler("SecuritiesCodesTask")
-
-
-
-public class SecuritiesCodesTask extends IJobHandler{
+public class SecuritiesCodesTask implements SimpleTask{
 	
-	private static Logger log = LoggerFactory.getLogger(SecuritiesCodesTask.class);
+	private static Logger logger = LoggerFactory.getLogger(SecuritiesCodesTask.class);
 	
 	@Override
-	public ReturnT<String> execute(String param) throws Exception {
-		log.error("com.platform.task.SecuritiesCodesTask start");
-		return new ReturnT<String>("");
+	public ResultSupport<String> process(SimpleTaskParam param) {
+		logger.error("com.platform.task.SecuritiesCodesTask start");
+		return new ResultSupport<String>().success("SecuritiesCodesTask R");
 	}
 
 }
