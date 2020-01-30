@@ -14,7 +14,6 @@ import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
@@ -33,10 +32,10 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	@Resource @Setter
 	private DataService dataService; 
 	
-	@Resource @Setter @Qualifier("eastMoneyService")
+	@Setter
 	private SourceService eastMoneyService;
 	
-	@Resource @Setter @Qualifier("tuShareServcie")
+	@Setter
 	private SourceService tuShareServcie;
 	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesServiceImpl.class);
