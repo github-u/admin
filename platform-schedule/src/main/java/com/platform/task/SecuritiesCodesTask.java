@@ -64,4 +64,5 @@ public class SecuritiesCodesTask implements SimpleTask{
 			return new ResultSupport<String>().success(LangUtil.convert(getBatchRet.getModel(), String.class));
 		}
 	}
+	
 }
