@@ -54,7 +54,14 @@ public class SecuritiesCodesTask implements SimpleTask{
 						return paramT;
 					}
 					
-				});
+				},
+				new Function<String, String>() {
+					@Override
+					public String apply(String t) {
+						return "securities_codes";
+					}
+				}
+				);
 		
 		if(!getBatchRet.isSuccess()) {
 			logger.error(SecuritiesCodesTask.class.getName() + " end fail!");

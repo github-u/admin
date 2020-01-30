@@ -46,12 +46,13 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
-		return getBatch(type, tableName, columnNames, uniqColumnNames, conditions, null);
+		return getBatch(type, tableName, columnNames, uniqColumnNames, conditions, null, null);
 	}
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions, 
-			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor){
+			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor,
+			Function<String, String> postSourceTableNameAliasProcessor){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
 		
@@ -60,7 +61,6 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 			return ret.fail(dataRet.getErrCode(), dataRet.getErrMsg());
 		}
 		
-		
 		ResultSupport<List<Map<String, Object>>> postSourceProcessRet = postSourceProcess(dataRet.getModel(), 
 				postSourceProcessor, tableName, columnNames, uniqColumnNames);
 		if(!postSourceProcessRet.isSuccess()) {
@@ -68,10 +68,12 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		}
 		
 		AtomicLong counter = new AtomicLong(0L);
+		String tableNameAlias = postSourceTableNameAliasProcessor != null ? 
+				postSourceTableNameAliasProcessor.apply(tableName) : tableName;
 		postSourceProcessRet.getModel().parallelStream()
 		.forEach(oneSecuritiesTuple->{
 			try {
-				ResultSupport<Long> saveRet = save(tableName, oneSecuritiesTuple, uniqColumnNames);
+				ResultSupport<Long> saveRet = save(tableNameAlias, oneSecuritiesTuple, uniqColumnNames);
 				if(!saveRet.isSuccess()) {
 					logger.error("title=" + "SecuritiesService"
 							+ "$mode=" + "getTotal"
