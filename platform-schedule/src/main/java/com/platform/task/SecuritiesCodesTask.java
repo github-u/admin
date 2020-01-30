@@ -66,4 +66,7 @@ public class SecuritiesCodesTask implements SimpleTask{
 		
 	}
 	
+	public static void main(String[] args) {
+		
+	}
 }
