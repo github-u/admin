@@ -36,7 +36,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	private SourceService eastMoneyService;
 	
 	@Setter
-	private SourceService tuShareServcie;
+	private SourceService tuShareService;
 	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesServiceImpl.class);
 	
@@ -183,7 +183,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 			sourceService = eastMoneyService;
 			
 		}else if(Source.TU_SHARE.equals(type)) {
-			sourceService = tuShareServcie;
+			sourceService = tuShareService;
 		}
 		Preconditions.checkNotNull(sourceService);
 		
@@ -254,7 +254,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		
 		SourceService tuShareSourceService = new TuShareServiceImpl();
 		((TuShareServiceImpl)tuShareSourceService).init();
-		((SecuritiesServiceImpl)securitiesService).setTuShareServcie(tuShareSourceService);
+		((SecuritiesServiceImpl)securitiesService).setTuShareService(tuShareSourceService);
 		
 		String type = Source.EAST_MONEY;
 		String name = "east_money_monthly";
