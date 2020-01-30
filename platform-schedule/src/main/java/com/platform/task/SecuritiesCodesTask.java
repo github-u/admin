@@ -8,9 +8,9 @@ import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
 
-
 @Component
-@JobHandler
+@JobHandler("SecuritiesCodesTask")
+
 public class SecuritiesCodesTask extends IJobHandler{
 	
 	private static Logger log = LoggerFactory.getLogger(SecuritiesCodesTask.class);
