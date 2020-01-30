@@ -42,7 +42,7 @@ public class SecuritiesCodesTask implements SimpleTask{
 					public Map<String, Object> apply(Map<String, Object> paramT) {
 						
 						String tsCode = LangUtil.convert(paramT.get("ts_code"), String.class);
-						String code = tsCode.split(".")[1];
+						String code = tsCode.split("\\.")[0];
 						
 						String name = LangUtil.convert(paramT.get("fullname"), String.class);
 						String emCode = SecuritiesUtils.getSecuritiesType(code) + "." + code;
@@ -67,6 +67,7 @@ public class SecuritiesCodesTask implements SimpleTask{
 	}
 	
 	public static void main(String[] args) {
-		
+		String[] s = "a.b".split("\\.");
+		System.out.println();
 	}
 }

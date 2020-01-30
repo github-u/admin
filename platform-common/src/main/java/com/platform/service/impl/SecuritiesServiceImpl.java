@@ -60,15 +60,15 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 			return ret.fail(dataRet.getErrCode(), dataRet.getErrMsg());
 		}
 		
+		
+		ResultSupport<List<Map<String, Object>>> postSourceProcessRet = postSourceProcess(dataRet.getModel(), 
+				postSourceProcessor, tableName, columnNames, uniqColumnNames);
+		if(!postSourceProcessRet.isSuccess()) {
+			return ret.fail(postSourceProcessRet.getErrCode(), postSourceProcessRet.getErrMsg());
+		}
+		
 		AtomicLong counter = new AtomicLong(0L);
-		dataRet.getModel().parallelStream()
-		.map(oneSecuritiesTuple ->{
-			if(postSourceProcessor == null) {
-				return oneSecuritiesTuple;
-			}else {
-				return postSourceProcessor.apply(oneSecuritiesTuple);
-			}
-		})
+		postSourceProcessRet.getModel().parallelStream()
 		.forEach(oneSecuritiesTuple->{
 			try {
 				ResultSupport<Long> saveRet = save(tableName, oneSecuritiesTuple, uniqColumnNames);
@@ -188,6 +188,46 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		Preconditions.checkNotNull(sourceService);
 		
 		return sourceService;
+	}
+	
+	private ResultSupport<List<Map<String, Object>>> postSourceProcess(
+			List<Map<String, Object>> model, 
+			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor,
+			String tableName, 
+			String columnNames, 
+			String uniqColumnNames){
+		
+		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
+		
+		List<Map<String, Object>> transformedModel;
+		if(postSourceProcessor != null) {
+			try {
+				transformedModel = model.parallelStream()
+						.map(oneSecuritiesTuple ->{
+							try {
+								return postSourceProcessor.apply(oneSecuritiesTuple);
+							}catch(Exception e) {
+								logger.error("title=" + "SecuritiesService"
+										+ "$mode=" + "getBatch"
+										+ "$errCode=" + ResultCode.GET_BATCH_POST_SOURCE_TRRANSFER_EXCEPTION
+										+ "$table=" + tableName
+										+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
+										+ "$id=" +  oneSecuritiesTuple.get("id")
+										+ "$uniqColumnNames=" + uniqColumnNames
+										+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple), e);
+								throw e;
+							}
+						})			
+						.collect(Collectors.toList());
+			}catch(Exception e) {
+				return ret.fail(ResultCode.GET_BATCH_POST_SOURCE_TRRANSFER_EXCEPTION, e.getMessage());
+			}
+		}else {
+			transformedModel = model;
+		}
+		
+		return ret.success(transformedModel);
+		
 	}
 	
 	public ResultSupport<Long> save(String tableName, Map<String, Object> params, String uniqColumnNames) {

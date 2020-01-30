@@ -17,6 +17,8 @@ public interface SecuritiesService {
 		
 		public static final String SAVE_EXCEPTION = "SAVE_EXCEPTION";
 		
+		public static final String GET_BATCH_POST_SOURCE_TRRANSFER_EXCEPTION = "GET_BATCH_POST_SOURCE_TRRANSFER_EXCEPTION";
+		
 	}
 	
 	ResultSupport<Long> getBatch(String type, String tableName, 
