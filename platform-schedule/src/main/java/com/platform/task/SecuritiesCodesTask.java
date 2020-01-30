@@ -18,5 +18,5 @@ public class SecuritiesCodesTask implements SimpleTask{
 		logger.error("com.platform.task.SecuritiesCodesTask start");
 		return new ResultSupport<String>().success("SecuritiesCodesTask R");
 	}
-
+	
 }

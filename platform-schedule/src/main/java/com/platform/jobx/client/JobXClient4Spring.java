@@ -28,7 +28,7 @@ public class JobXClient4Spring extends AbstractJobXClient implements Application
 		Map<String, SimpleTask> simpleTasksFromContext = applicationContext.getBeansOfType(SimpleTask.class);
 		simpleTasksFromContext = simpleTasksFromContext.entrySet().stream()
 				.filter(kv -> kv.getValue() != null)
-				.collect(Collectors.toMap(a -> a.getValue().getClass().toString(), a -> a.getValue()));
+				.collect(Collectors.toMap(a -> a.getValue().getClass().getName(), a -> a.getValue()));
 		
 		simpleTasks.putAll(simpleTasksFromContext);
 	}
