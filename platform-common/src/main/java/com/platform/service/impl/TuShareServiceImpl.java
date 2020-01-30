@@ -58,7 +58,6 @@ public class TuShareServiceImpl implements TuShareService, SourceService {
     };
     */
     
-    @Resource @Setter
     private PropertyService propertyService; 
     
     public void init() throws Exception {
@@ -450,7 +449,7 @@ public class TuShareServiceImpl implements TuShareService, SourceService {
         /**
         for(int i = result.getModel().getItems().size() - 1; i >=0 ; i--) {
             Map<String, Object> itemElem  = result.getModel().getItem(i);
-            if(!"首发原始股".equals(itemElem.get("share_type"))) {
+            if(!"棣栧彂鍘熷鑲�".equals(itemElem.get("share_type"))) {
                 result.getModel().getItems().remove(i);
             }
         }
@@ -674,7 +673,7 @@ public class TuShareServiceImpl implements TuShareService, SourceService {
     	/**
         for(int i = result.getModel().getItems().size() - 1; i >=0 ; i--) {
             Map<String, Object> itemElem  = result.getModel().getItem(i);
-            if(!"首发原始股".equals(itemElem.get("share_type"))) {
+            if(!"棣栧彂鍘熷鑲�".equals(itemElem.get("share_type"))) {
                 result.getModel().getItems().remove(i);
             }
         }
@@ -760,7 +759,7 @@ public static void top10FloatHolders() throws Exception {
     	/**
         for(int i = result.getModel().getItems().size() - 1; i >=0 ; i--) {
             Map<String, Object> itemElem  = result.getModel().getItem(i);
-            if(!"首发原始股".equals(itemElem.get("share_type"))) {
+            if(!"棣栧彂鍘熷鑲�".equals(itemElem.get("share_type"))) {
                 result.getModel().getItems().remove(i);
             }
         }
