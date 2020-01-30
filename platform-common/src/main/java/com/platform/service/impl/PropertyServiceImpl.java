@@ -13,7 +13,7 @@ public class PropertyServiceImpl implements PropertyService {
 	
 	private Properties properties;
 
-	private String fileName = "D:\\working_config\\Properties.prop";
+	private String fileName = "/home/admin/admin/Properties.prop";
 	
 	public void init() throws Exception {
 		FileInputStream fileInputStream = new FileInputStream(fileName);

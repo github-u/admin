@@ -5,4 +5,13 @@
         http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
     <bean id="regionCacheUtil" class="com.platform.cache.RegionCacheUtil"/>
+    
+    <bean id="securitiesService" class="com.platform.service.impl.SecuritiesServiceImpl" init-method="init"/>
+   
+    <bean id="dataService" class="com.platform.service.impl.DataServiceImpl.DataServiceImpl" init-method="init"/>
+ 
+    <bean id="eastMoneyService" class="com.platform.service.impl.EastMoneyServiceImpl.EastMoneyServiceImpl"/>
+ 
+    <bean id="tuShareService" class="com.platform.service.impl.TuShareServiceImpl.TuShareServiceImpl" init-method="init"/>
+    
 </beans>

@@ -1,5 +1,10 @@
 package com.platform.service;
 
+import java.util.Map;
+import java.util.function.Function;
+
+import com.platform.entity.ResultSupport;
+
 public interface SecuritiesService {
 	
 	public class SecuritiesServiceResultCode{
@@ -14,5 +19,11 @@ public interface SecuritiesService {
 		
 	}
 	
+	ResultSupport<Long> getBatch(String type, String tableName, 
+			String columnNames, String uniqColumnNames, Map<String, Object> conditions);
+	
+	ResultSupport<Long> getBatch(String type, String tableName, 
+			String columnNames, String uniqColumnNames, Map<String, Object> conditions,
+			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor);
 	
 }

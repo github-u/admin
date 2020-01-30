@@ -1,10 +1,9 @@
 package com.platform.service.impl;
 
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -16,7 +15,6 @@ import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.druid.filter.Filter;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -35,7 +33,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	private DataService dataService; 
 	
 	@Resource @Setter
-	private SourceService eastMoneySourceService;
+	private SourceService eastMoneyService;
 	
 	@Resource @Setter
 	private SourceService tuShareServcie;
@@ -48,6 +46,12 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
+		return getBatch(type, tableName, columnNames, uniqColumnNames, conditions, null);
+	}
+	
+	public ResultSupport<Long> getBatch(String type, String tableName, 
+			String columnNames, String uniqColumnNames, Map<String, Object> conditions, 
+			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
 		
@@ -58,6 +62,13 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		
 		AtomicLong counter = new AtomicLong(0L);
 		dataRet.getModel().parallelStream()
+		.map(oneSecuritiesTuple ->{
+			if(postSourceProcessor == null) {
+				return oneSecuritiesTuple;
+			}else {
+				return postSourceProcessor.apply(oneSecuritiesTuple);
+			}
+		})
 		.forEach(oneSecuritiesTuple->{
 			try {
 				ResultSupport<Long> saveRet = save(tableName, oneSecuritiesTuple, uniqColumnNames);
@@ -169,7 +180,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		SourceService sourceService = null;
 		
 		if(Source.EAST_MONEY.equals(type)) {
-			sourceService = eastMoneySourceService;
+			sourceService = eastMoneyService;
 			
 		}else if(Source.TU_SHARE.equals(type)) {
 			sourceService = tuShareServcie;
@@ -239,7 +250,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		((SecuritiesServiceImpl)securitiesService).setDataService(dataService);
 		
 		SourceService eastMoneySourceService = new EastMoneyServiceImpl();
-		((SecuritiesServiceImpl)securitiesService).setEastMoneySourceService(eastMoneySourceService);
+		((SecuritiesServiceImpl)securitiesService).setEastMoneyService(eastMoneySourceService);
 		
 		SourceService tuShareSourceService = new TuShareServiceImpl();
 		((TuShareServiceImpl)tuShareSourceService).init();
