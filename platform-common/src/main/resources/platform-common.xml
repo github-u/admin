@@ -8,10 +8,10 @@
     
     <bean id="securitiesService" class="com.platform.service.impl.SecuritiesServiceImpl" init-method="init"/>
    
-    <bean id="dataService" class="com.platform.service.impl.DataServiceImpl.DataServiceImpl" init-method="init"/>
+    <bean id="dataService" class="com.platform.service.impl.DataServiceImpl" init-method="init"/>
  
-    <bean id="eastMoneyService" class="com.platform.service.impl.EastMoneyServiceImpl.EastMoneyServiceImpl"/>
+    <bean id="eastMoneyService" class="com.platform.service.impl.EastMoneyServiceImpl"/>
  
-    <bean id="tuShareService" class="com.platform.service.impl.TuShareServiceImpl.TuShareServiceImpl" init-method="init"/>
+    <bean id="tuShareService" class="com.platform.service.impl.TuShareServiceImpl" init-method="init"/>
     
 </beans>
