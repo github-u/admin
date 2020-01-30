@@ -6,7 +6,7 @@
 
     <bean id="regionCacheUtil" class="com.platform.cache.RegionCacheUtil"/>
     
-    <bean id="securitiesService" class="com.platform.service.impl.SecuritiesServiceImpl" init-method="init">
+    <bean id="securitiesService" class="com.platform.service.impl.SecuritiesServiceImpl">
     	<property name="eastMoneyService" ref="eastMoneyService"></property>
     	<property name="tuShareService" ref="tuShareService"></property>
     </bean>
