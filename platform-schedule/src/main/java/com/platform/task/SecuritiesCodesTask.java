@@ -66,8 +66,5 @@ public class SecuritiesCodesTask implements SimpleTask{
 		
 	}
 	
-	public static void main(String[] args) {
-		String[] s = "a.b".split("\\.");
-		System.out.println();
-	}
+	public static void main(String[] args) {}
 }
