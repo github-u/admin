@@ -11,6 +11,8 @@ import com.xxl.job.core.handler.annotation.JobHandler;
 @Component
 @JobHandler("SecuritiesCodesTask")
 
+
+
 public class SecuritiesCodesTask extends IJobHandler{
 	
 	private static Logger log = LoggerFactory.getLogger(SecuritiesCodesTask.class);
