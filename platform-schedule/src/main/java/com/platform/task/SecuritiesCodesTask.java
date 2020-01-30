@@ -63,6 +63,7 @@ public class SecuritiesCodesTask implements SimpleTask{
 			logger.error(SecuritiesCodesTask.class.getName() + " end success.");
 			return new ResultSupport<String>().success(LangUtil.convert(getBatchRet.getModel(), String.class));
 		}
+		
 	}
 	
 }
