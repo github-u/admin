@@ -72,8 +72,33 @@ public class TuShareServiceImpl implements TuShareService, SourceService {
 	@Override
 	public ResultSupport<List<Map<String, Object>>> source(String sourceName, String securitiesCode, String columnNames,
 			Map<String, Object> conditions) {
-		// TODO Auto-generated method stub
-		return null;
+		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
+
+        Map<String, String> param = 
+        		conditions.entrySet().stream().map(kv -> {
+        			return Pair.of(kv.getKey(), LangUtil.safeString(kv.getValue()));
+        		})
+        		.collect(Collectors.toMap(pair -> pair.fst, pair -> pair.snd));
+        
+        TuShareParam tuShareParam = new TuShareParam(
+        		sourceName, 
+                TUSHARE_TOKEN, 
+                param, 
+                columnNames);
+        
+        ResultSupport<TuShareData> getDataRet = getData(tuShareParam);
+        if(!getDataRet.isSuccess()) {
+        	return ret.fail(getDataRet.getErrCode(), getDataRet.getErrMsg());
+        }
+        
+        List<Map<String, Object>> model = 
+        		IntStream.range(0, getDataRet.getModel().getItems().size())
+        		.mapToObj(index -> {
+        			return getDataRet.getModel().getItem(index);
+        		})
+        		.collect(Collectors.toList());
+        
+        return ret.success(model);
 	}
 
 	@Override

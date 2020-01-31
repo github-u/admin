@@ -15,4 +15,14 @@ public class SecuritiesUtils {
 			-1;
 	}
 	
+	public static String getTuShareSecuritiesCode(String securitiesCode) {
+		return 	getSecuritiesType(securitiesCode) == 0 ? securitiesCode + ".SZ" :
+				getSecuritiesType(securitiesCode) == 1 ? securitiesCode + ".SH" :
+				securitiesCode + ".U";
+	}
+	
+	public static String getEastMoneySecuritiesCode(String securitiesCode) {
+		return 	getSecuritiesType(securitiesCode) + "." + securitiesCode;
+	}
+	
 }

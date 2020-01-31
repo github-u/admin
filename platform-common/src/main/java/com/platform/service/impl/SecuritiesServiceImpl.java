@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.service.DataService;
 import com.platform.service.SecuritiesService;
+import com.platform.service.SQLService.VelocityContextKey;
 import com.platform.service.impl.SourceService.Source;
 import com.platform.utils.LangUtil;
 
@@ -39,9 +40,31 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	@Setter
 	private SourceService tuShareService;
 	
+	public static int MAX_SECURITIES_CODES = 6000;
+	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesServiceImpl.class);
 	
-	public void securitiesCodes() {
+	public ResultSupport<List<String>> getSecuritiesCodes() {
+		
+		ResultSupport<List<String>> ret = new ResultSupport<List<String>>();
+		
+		Map<String, Object> selectParams = Maps.newHashMap();
+		selectParams.put(VelocityContextKey.Limit, MAX_SECURITIES_CODES);
+		
+		ResultSupport<List<Map<String, Object>>> selectRet = dataService.select("securities_codes", selectParams);
+		if(!selectRet.isSuccess()) {
+			return ret.fail(selectRet.getErrCode(), selectRet.getErrMsg());
+		}
+		
+		List<String> securitiesCodes = 
+				selectRet.getModel().stream()
+				.map(tuple->{
+					return LangUtil.convert(tuple.get("code"), String.class);
+				})
+				.filter(code -> code != null)
+				.collect(Collectors.toList());
+		
+		return ret.success(securitiesCodes);	
 		
 	}
 	
