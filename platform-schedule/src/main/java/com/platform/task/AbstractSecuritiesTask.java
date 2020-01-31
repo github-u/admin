@@ -50,7 +50,9 @@ public abstract class AbstractSecuritiesTask implements SimpleTask{
 						+ "$action=" + "end"
 						+ "$name=" + this.getClass().getName()
 						+ "$ret=" + "success"
-						+ "$cost=" + (end - start));
+						+ "$cost=" + (end - start)
+						+ "$msg=" + processRet.getModel()
+						);
 				return new ResultSupport<String>().success(LangUtil.convert(processRet.getModel(), String.class));
 			}
 		}catch(Exception e) {

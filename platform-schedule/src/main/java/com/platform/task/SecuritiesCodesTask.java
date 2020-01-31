@@ -45,7 +45,7 @@ public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 						String tsCode = LangUtil.convert(paramT.get("ts_code"), String.class);
 						String code = tsCode.split("\\.")[0];
 						
-						String name = LangUtil.convert(paramT.get("fullname"), String.class);
+						String name = LangUtil.convert(paramT.get("name"), String.class);
 						String emCode = SecuritiesUtils.getSecuritiesType(code) + "." + code;
 						
 						paramT.put("code", code);
