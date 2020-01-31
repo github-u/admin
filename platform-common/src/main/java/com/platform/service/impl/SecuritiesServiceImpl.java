@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
@@ -46,13 +47,14 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
-		return getBatch(type, tableName, columnNames, uniqColumnNames, conditions, null, null);
+		return getBatch(type, tableName, columnNames, uniqColumnNames, conditions, null, null, false);
 	}
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions, 
 			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor,
-			Function<String, String> postSourceTableNameAliasProcessor){
+			Function<String, String> postSourceTableNameAliasProcessor,
+			boolean parallel){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
 		
@@ -62,7 +64,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		}
 		
 		ResultSupport<List<Map<String, Object>>> postSourceProcessRet = postSourceProcess(dataRet.getModel(), 
-				postSourceProcessor, tableName, columnNames, uniqColumnNames);
+				postSourceProcessor, tableName, columnNames, uniqColumnNames, parallel);
 		if(!postSourceProcessRet.isSuccess()) {
 			return ret.fail(postSourceProcessRet.getErrCode(), postSourceProcessRet.getErrMsg());
 		}
@@ -70,8 +72,13 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		AtomicLong counter = new AtomicLong(0L);
 		String tableNameAlias = postSourceTableNameAliasProcessor != null ? 
 				postSourceTableNameAliasProcessor.apply(tableName) : tableName;
-		postSourceProcessRet.getModel().parallelStream()
-		.forEach(oneSecuritiesTuple->{
+		Stream<Map<String, Object>> stream = null;
+		if(!parallel) {
+			stream = postSourceProcessRet.getModel().stream();
+		}else {
+			stream = postSourceProcessRet.getModel().parallelStream();
+		}
+		stream.forEach(oneSecuritiesTuple->{
 			try {
 				ResultSupport<Long> saveRet = save(tableNameAlias, oneSecuritiesTuple, uniqColumnNames);
 				if(!saveRet.isSuccess()) {
@@ -197,14 +204,22 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor,
 			String tableName, 
 			String columnNames, 
-			String uniqColumnNames){
+			String uniqColumnNames,
+			boolean parallel){
 		
 		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
 		
 		List<Map<String, Object>> transformedModel;
 		if(postSourceProcessor != null) {
 			try {
-				transformedModel = model.parallelStream()
+				//boolean keepSourceOrder;
+				Stream<Map<String, Object>> stream = null;
+				if(!parallel) {
+					stream = model.stream();
+				}else {
+					stream = model.parallelStream();
+				}
+				transformedModel = stream
 						.map(oneSecuritiesTuple ->{
 							try {
 								return postSourceProcessor.apply(oneSecuritiesTuple);

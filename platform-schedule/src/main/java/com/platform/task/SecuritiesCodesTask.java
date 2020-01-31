@@ -12,14 +12,13 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
-import com.platform.jobx.service.SimpleTask;
 import com.platform.service.SecuritiesService;
 import com.platform.service.impl.SourceService.Source;
 import com.platform.utils.LangUtil;
 import com.platform.utils.SecuritiesUtils;
 
 @Component
-public class SecuritiesCodesTask implements SimpleTask{
+public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesCodesTask.class);
 	
@@ -27,9 +26,10 @@ public class SecuritiesCodesTask implements SimpleTask{
 	private SecuritiesService securitiesService;
 	
 	@Override
-	public ResultSupport<String> process(SimpleTaskParam param) {
+	public ResultSupport<String> process(SimpleTaskParam taskParam, Map<String, String> argMap) {
 		
-		logger.error(SecuritiesCodesTask.class + " start ...");
+		boolean parallel = LangUtil.convert(argMap.get("parallel"), Boolean.class);
+		
 		ResultSupport<Long> getBatchRet = securitiesService.getBatch(
 				Source.TU_SHARE, 
 				"stock_basic", 
@@ -61,17 +61,16 @@ public class SecuritiesCodesTask implements SimpleTask{
 						return "securities_codes";
 					}
 				}
-				);
+				,parallel);
 		
 		if(!getBatchRet.isSuccess()) {
-			logger.error(SecuritiesCodesTask.class.getName() + " end fail!");
 			return new ResultSupport<String>().fail(getBatchRet.getErrCode(), getBatchRet.getErrMsg());
 		}else {
-			logger.error(SecuritiesCodesTask.class.getName() + " end success.");
 			return new ResultSupport<String>().success(LangUtil.convert(getBatchRet.getModel(), String.class));
 		}
 		
 	}
 	
 	public static void main(String[] args) {}
+
 }
