@@ -20,7 +20,7 @@ import com.platform.utils.SecuritiesUtils;
 @Component
 public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 	
-	private static Logger logger = LoggerFactory.getLogger(SecuritiesCodesTask.class);
+	//private static Logger logger = LoggerFactory.getLogger(SecuritiesCodesTask.class);
 	
 	@Resource
 	private SecuritiesService securitiesService;
@@ -28,7 +28,8 @@ public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 	@Override
 	public ResultSupport<String> process(SimpleTaskParam taskParam, Map<String, String> argMap) {
 		
-		boolean parallel = LangUtil.convert(argMap.get("parallel"), Boolean.class);
+		Boolean parallel = LangUtil.convert(argMap.get("parallel"), Boolean.class);
+		parallel = parallel != null ? parallel : false;
 		
 		ResultSupport<Long> getBatchRet = securitiesService.getBatch(
 				Source.TU_SHARE, 
@@ -71,6 +72,8 @@ public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 		
 	}
 	
-	public static void main(String[] args) {}
+	public static void main(String[] args) {
+		
+	}
 
 }
