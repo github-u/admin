@@ -1,7 +1,11 @@
 package com.platform.service.impl;
 
+import java.time.DayOfWeek;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,6 +22,9 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
@@ -25,7 +32,9 @@ import com.platform.service.DataService;
 import com.platform.service.SecuritiesService;
 import com.platform.service.SQLService.VelocityContextKey;
 import com.platform.service.impl.SourceService.Source;
+import com.platform.utils.DateUtil;
 import com.platform.utils.LangUtil;
+import com.platform.utils.Pair;
 
 import lombok.Setter;
 
@@ -44,6 +53,24 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	private static Logger logger = LoggerFactory.getLogger(SecuritiesServiceImpl.class);
 	
+	private static int SECURITIES_LEAVE_DAYS_CACHE_MAX_SIZE = 2;
+	
+	private static String SECURITIES_LEAVE_DAYS_CACHE_KEY = "SECURITIES_LEAVE_DAYS_CACHE_KEY";
+	
+	private LoadingCache<String, Set<String>> securitiesLeaveDaysCache = CacheBuilder.newBuilder()
+			.maximumSize(SECURITIES_LEAVE_DAYS_CACHE_MAX_SIZE)
+			.expireAfterWrite(1, TimeUnit.MINUTES)
+			.build(new CacheLoader<String, Set<String>>(){
+
+				@Override
+				public Set<String> load(String key) throws Exception {
+					Preconditions.checkArgument(SECURITIES_LEAVE_DAYS_CACHE_KEY.equals(key));
+					return leaveDays(new Date());
+				}
+						
+			});
+			
+	 
 	public ResultSupport<List<String>> getSecuritiesCodes() {
 		
 		ResultSupport<List<String>> ret = new ResultSupport<List<String>>();
@@ -65,6 +92,35 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				.collect(Collectors.toList());
 		
 		return ret.success(securitiesCodes);	
+		
+	}
+	
+	@Override
+	public ResultSupport<Boolean> isTradeDay(Date date) {
+		Preconditions.checkNotNull(date);
+		
+		ResultSupport<Boolean> ret = new ResultSupport<Boolean>();
+		int dayOfWeek = DateUtil.getDayOfWeek(date);
+		if(dayOfWeek == DayOfWeek.SUNDAY.getValue() || dayOfWeek == DayOfWeek.SATURDAY.getValue()) {
+			return ret.success(Boolean.FALSE);
+		}
+		
+		String dataString = DateUtil.getDate(date, DateUtil.DAY_FORMATTER_1) + " 00:00:00";
+		try {
+			Set<String> leaveDays = securitiesLeaveDaysCache.get(SECURITIES_LEAVE_DAYS_CACHE_KEY);
+			if(leaveDays.contains(dataString)) {
+				return ret.success(Boolean.FALSE);
+			}
+			
+			return ret.success(Boolean.TRUE);
+		} catch (Exception e) {
+			logger.error("title=" + "SecuritiesService"
+					+ "$mode=" + "isTradeDay"
+					+ "$errCode=" + ResultCode.IS_TRADE_DAY_EXCEPTION
+					+ "$errMsg=" + date
+					,e);
+			return ret.fail(ResultCode.IS_TRADE_DAY_EXCEPTION, e.getMessage());
+		}
 		
 	}
 	
@@ -108,7 +164,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 					logger.error("title=" + "SecuritiesService"
 							+ "$mode=" + "getTotal"
 							+ "$errCode=" + ResultCode.SAVE_FAIL
-							+ "$table=" + tableName
+							+ "$table=" + tableNameAlias
 							+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
 							+ "$id=" +  oneSecuritiesTuple.get("id")
 							+ "$uniqColumnNames=" + uniqColumnNames
@@ -119,7 +175,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "getTotal"
 						+ "$errCode=" + "SUC"
-						+ "$table=" + tableName
+						+ "$table=" + tableNameAlias
 						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)
 						+ "$id=" +  oneSecuritiesTuple.get("id")); 
 				counter.getAndIncrement();
@@ -127,7 +183,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "getTotal"
 						+ "$errCode=" + ResultCode.SAVE_EXCEPTION
-						+ "$table=" + tableName
+						+ "$table=" + tableNameAlias
 						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
 						+ "$id=" +  oneSecuritiesTuple.get("id")
 						+ "$uniqColumnNames=" + uniqColumnNames
@@ -141,6 +197,14 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
+		return get(type, tableName, securitiesCode, columnNames, uniqColumnNames, conditions, null, null, false);
+	}
+	
+	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
+			String columnNames, String uniqColumnNames, Map<String, Object> conditions,
+			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor, 
+			Function<String, String> postSourceTableNameAliasProcessor,
+			boolean parallel){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
 		
@@ -149,16 +213,31 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 			return ret.fail(dataRet.getErrCode(), dataRet.getErrMsg());
 		}
 		
+		ResultSupport<List<Map<String, Object>>> postSourceProcessRet = postSourceProcess(dataRet.getModel(), 
+				postSourceProcessor, tableName, columnNames, uniqColumnNames, parallel);
+		if(!postSourceProcessRet.isSuccess()) {
+			return ret.fail(postSourceProcessRet.getErrCode(), postSourceProcessRet.getErrMsg());
+		}
+		
+		String tableNameAlias = postSourceTableNameAliasProcessor != null ? 
+				postSourceTableNameAliasProcessor.apply(tableName) : tableName;
+		Stream<Map<String, Object>> stream = null;
+		if(!parallel) {
+			stream = postSourceProcessRet.getModel().stream();
+		}else {
+			stream = postSourceProcessRet.getModel().parallelStream();
+		}
+		
 		AtomicLong counter = new AtomicLong(0L);
-		dataRet.getModel().parallelStream()
+		stream
 		.forEach(oneSecuritiesTuple->{
 			try {
-				ResultSupport<Long> saveRet = save(tableName, oneSecuritiesTuple, uniqColumnNames);
+				ResultSupport<Long> saveRet = save(tableNameAlias, oneSecuritiesTuple, uniqColumnNames);
 				if(!saveRet.isSuccess()) {
 					logger.error("title=" + "SecuritiesService"
 							+ "$mode=" + "get"
 							+ "$errCode=" + ResultCode.SAVE_FAIL
-							+ "$table=" + tableName
+							+ "$table=" + tableNameAlias
 							+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 
 							+ "$id=" +  oneSecuritiesTuple.get("id")
 							+ "$uniqColumnNames=" + uniqColumnNames
@@ -169,7 +248,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "get"
 						+ "$errCode=" + "SUC"
-						+ "$table=" + tableName
+						+ "$table=" + tableNameAlias
 						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)
 						+ "$id=" +  oneSecuritiesTuple.get("id")); 
 				counter.getAndIncrement();
@@ -177,7 +256,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				logger.error("title=" + "SecuritiesService"
 						+ "$mode=" + "get"
 						+ "$errCode=" + ResultCode.SAVE_EXCEPTION
-						+ "$table=" + tableName
+						+ "$table=" + tableNameAlias
 						+ "$code=" + getSecuritiesCode(oneSecuritiesTuple)
 						+ "$id=" +  oneSecuritiesTuple.get("id")
 						+ "$uniqColumnNames=" + uniqColumnNames
@@ -321,6 +400,26 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 				: LangUtil.safeString(oneSecuritiesTuple.get("ts_code"));
 	}
 	
+	private Set<String> leaveDays(Date date) {
+		
+		Map<String, Object> selectParams = Maps.newHashMap();
+		selectParams.put("date", String.valueOf(DateUtil.getYear(date)));
+		ResultSupport<List<Map<String, Object>>> selectRet = dataService.select("securities_leave_days", selectParams);
+		if(!selectRet.isSuccess()) {
+			throw new RuntimeException();
+		}
+		
+		Map<String, Map<String, Object>> leaveDays = 
+				selectRet.getModel().stream()
+				.map(tuple->{
+					return Pair.of(LangUtil.convert(tuple.get("date"), String.class), tuple);
+				})
+				.filter(code -> code != null)
+				.collect(Collectors.toMap(pair -> pair.fst, pair -> pair.snd));
+		
+		return leaveDays.keySet();
+	}
+	
 	public static void main(String[] args) throws Exception {
 		
 		SecuritiesService securitiesService = new SecuritiesServiceImpl();
@@ -368,5 +467,6 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		return appender;
 		
 	}
+
 	
 }
