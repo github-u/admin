@@ -51,6 +51,7 @@ public abstract class AbstractSecuritiesCodesIteratorWeeklySupportTask extends A
 		}
 		
 		return process(securitiesCode, taskParam, argMap, date);
+		
 	}
 	
 	public abstract ResultSupport<String> process(String securitiesCode, SimpleTaskParam taskParam, Map<String, String> argMap, Date date);

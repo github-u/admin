@@ -76,7 +76,7 @@ public abstract class AbstractSecuritiesTask implements SimpleTask{
 			return ret;
 		}
 		
-		String[] argsToken = StringUtils.tokenizeToStringArray(args, ",;\t\n ");
+		String[] argsToken = StringUtils.tokenizeToStringArray(args, ",;\t\n");
 		Map<String, String> argMap = Lists.newArrayList(argsToken).stream()
 				.map(token -> {
 					if(token == null || token.trim().length() == 0) {
