@@ -26,15 +26,18 @@ public abstract class AbstractSecuritiesCodesIteratorWeeklySupportTask extends A
 	
 	@Override
 	public ResultSupport<String> process(String securitiesCode, SimpleTaskParam taskParam, Map<String, String> argMap) {
-		
 		Date date = null;
-		try {
-			String dateString = LangUtil.safeString(argMap.get("date"));
-			date = DateUtil.getDate(dateString);
-		}catch(Exception e) {
-			logger.error("title=" + "AbstractSecuritiesCodesIteratorWeeklySupportTask"
-					+ "$mode=" + "process"
-					+ "$errCode=" + "DATE_PARSE_EXCEPTION",e);
+		
+		String dateString = LangUtil.safeString(argMap.get("date"));
+		if(dateString != null) {
+			try {
+				
+				date = DateUtil.getDate(dateString);
+			}catch(Exception e) {
+				logger.error("title=" + "AbstractSecuritiesCodesIteratorWeeklySupportTask"
+						+ "$mode=" + "process"
+						+ "$errCode=" + "DATE_PARSE_EXCEPTION",e);
+			}
 		}
 		date = date != null ? date : new Date();
 		
