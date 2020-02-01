@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
 
+import com.google.common.collect.Lists;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
 import com.platform.service.SecuritiesService;
@@ -21,7 +22,16 @@ public abstract class AbstractSecuritiesCodesIteratorTask extends AbstractSecuri
 		
 		ResultSupport<String> ret = new ResultSupport<String>();
 		
-		ResultSupport<List<String>> securitiesCodesRet = securitiesService.getSecuritiesCodes();
+		String paramSecuritiesCodes = LangUtil.safeString(argMap.get("securitiesCodes"));
+		
+		ResultSupport<List<String>> securitiesCodesRet = null; 
+		if(paramSecuritiesCodes != null) {
+			List<String> securitiesCodes = Lists.newArrayList(paramSecuritiesCodes.split("^"));
+			securitiesCodesRet = new ResultSupport<List<String>>().success(securitiesCodes);
+		}else {
+			securitiesCodesRet = securitiesService.getSecuritiesCodes();
+		}
+		
 		if(!securitiesCodesRet.isSuccess()) {
 			return ret.fail(securitiesCodesRet.getErrCode(), securitiesCodesRet.getErrMsg());
 		}
