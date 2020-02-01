@@ -61,7 +61,7 @@ public abstract class AbstractSecuritiesCodesIteratorWeeklySupportTask extends A
 	}
 	
 	protected boolean lastWeekTradeDay(Date date) {
-		List<Date> weekDays = DateUtil.getWeekDays();
+		List<Date> weekDays = DateUtil.getWeekDays(date);
 		
 		for(int i=weekDays.size()-1; i>=0 ; i--) {
 			Date weekDay = weekDays.get(i);

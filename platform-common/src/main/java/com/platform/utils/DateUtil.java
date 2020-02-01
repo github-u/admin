@@ -41,9 +41,13 @@ public class DateUtil {
 				d1.getDayOfYear() == d2.getDayOfYear();
 	}
 	
+	public static List<Date> getWeekDays(Date date){
+		LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+		return getWeekDays(localDateTime.getYear(), localDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+	}
+	
 	public static List<Date> getWeekDays(){
-		LocalDateTime now = LocalDateTime.now();
-		return getWeekDays(now.getYear(), now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+		return getWeekDays(new Date());
 	}
 	
 	public static Integer getYear(Date date) {
