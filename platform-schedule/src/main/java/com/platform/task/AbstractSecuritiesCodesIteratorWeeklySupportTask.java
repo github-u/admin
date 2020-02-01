@@ -31,11 +31,11 @@ public abstract class AbstractSecuritiesCodesIteratorWeeklySupportTask extends A
 		String dateString = LangUtil.safeString(argMap.get("date"));
 		if(dateString != null) {
 			try {
-				
 				date = DateUtil.getDate(dateString);
 			}catch(Exception e) {
 				logger.error("title=" + "AbstractSecuritiesCodesIteratorWeeklySupportTask"
 						+ "$mode=" + "process"
+						+ "$code=" + securitiesCode
 						+ "$errCode=" + "DATE_PARSE_EXCEPTION",e);
 			}
 		}
@@ -44,13 +44,13 @@ public abstract class AbstractSecuritiesCodesIteratorWeeklySupportTask extends A
 		if(!trigger(date)) {
 			logger.error("title=" + "AbstractSecuritiesCodesIteratorWeeklySupportTask"
 					+ "$mode=" + "process"
+					+ "$code=" + securitiesCode
 					+ "$errCode=" + "NOT_TRIGGER_DAY"
 					+ "$date=" + date);
 			return new ResultSupport<String>().success("NOT_TRIGGER_DAY"); 
 		}
 		
 		return process(securitiesCode, taskParam, argMap, date);
-	
 	}
 	
 	public abstract ResultSupport<String> process(String securitiesCode, SimpleTaskParam taskParam, Map<String, String> argMap, Date date);
