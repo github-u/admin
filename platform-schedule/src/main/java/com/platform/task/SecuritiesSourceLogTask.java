@@ -1,5 +1,6 @@
 package com.platform.task;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import com.platform.service.TuShareService;
 import com.platform.service.impl.SourceService;
 import com.platform.service.impl.SourceService.Source;
 import com.platform.utils.LangUtil;
+import com.platform.utils.SecuritiesUtils;
 
 @Component
 public class SecuritiesSourceLogTask extends AbstractSecuritiesTask{
@@ -77,11 +79,24 @@ public class SecuritiesSourceLogTask extends AbstractSecuritiesTask{
 		params.put("sourceName", "");
 		params.put("securitiesCode", "");
 		params.put("columnNames", "");
+		params.put("sourceType", Source.EAST_MONEY);
 		
-		Map<String, Object> conditiosns = Maps.newHashMap();
-		conditiosns.put("", "");
+		Map<String, Object> conditions = Maps.newHashMap();
+		conditions.put("secId", SecuritiesUtils.getEastMoneySecuritiesCode("000001"));
+		conditions.put("ut", "fa5fd1943c7b386f172d6893dbfba10b");
+		conditions.put("fields1", "f1,f2,f3,f4,f5");
+		conditions.put("fields2", "f51,f52,f53,f54,f55,f56,f57,f58");
+		conditions.put("klt", "103");
+		conditions.put("fqt", "1");
+		//conditions.put("beg", beg);
+		//conditions.put("end", end);
+		conditions.put("smplmt", "460");
+		conditions.put("_", String.valueOf(new Date().getTime()));
 		
-		params.put("conditiosns", conditiosns);
+		
+		params.put("conditiosns", conditions);
+		
+		System.out.println(JSON.toJSONString(params));
 	}
 
 }

@@ -3,11 +3,13 @@ package com.platform.service.impl;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpResponse;
@@ -175,9 +177,22 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 			params = paramsHandler.apply(secId, conditions);
 		}else {
 			params = conditions.entrySet().stream()
-					.collect(Collectors.toMap(kv -> kv.getKey(), kv -> LangUtil.safeString(kv.getValue())));
+					.collect(Collector.of(
+							()->{
+								Map<String, String> s = new LinkedHashMap<String, String>();
+								return s;
+							},
+							(s, e)->{
+								s.put(e.getKey(), LangUtil.safeString(e.getValue()));
+							}, 
+							(s1, s2)->{
+								s1.putAll(s2);
+								return s1;
+							},
+							Collector.Characteristics.IDENTITY_FINISH
+							));
 		}
-				
+		
 		String url = url(params);
 		
 		return source(url);
