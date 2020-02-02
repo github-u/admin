@@ -11,11 +11,13 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
 import com.platform.service.EastMoneyService;
 import com.platform.service.TuShareService;
 import com.platform.service.impl.SourceService;
+import com.platform.service.impl.SourceService.Source;
 import com.platform.utils.LangUtil;
 
 @Component
@@ -33,18 +35,29 @@ public class SecuritiesSourceLogTask extends AbstractSecuritiesTask{
 	public ResultSupport<String> process(SimpleTaskParam taskParam, Map<String, String> argMap) {
 		
 		JSONObject params = JSON.parseObject(taskParam.getPlainArgs());
+		
+		String sourceType = LangUtil.convert(params.get("sourceType"), String.class); 
 		String sourceName = LangUtil.convert(params.get("sourceName"), String.class); 
-		String securitiesCode = LangUtil.convert(params.get("sourceName"), String.class);
-		String columnNames = LangUtil.convert(params.get("sourceName"), String.class);
+		String securitiesCode = LangUtil.convert(params.get("securitiesCode"), String.class);
+		String columnNames = LangUtil.convert(params.get("columnNames"), String.class);
 		
 		Map<String, Object> conditions = params.getJSONObject("conditions");
 		
 		ResultSupport<List<Map<String, Object>>> sourceRet = null;
 		
-		if(securitiesCode != null) {
-			sourceRet = ((SourceService)eastMoneyService).source(sourceName, securitiesCode, columnNames, conditions);
+		SourceService sourceService = null;
+		if(Source.EAST_MONEY.equals(sourceType)) {
+			sourceService = (SourceService) eastMoneyService;
+		}else if(Source.TU_SHARE.equals(sourceType)) {
+			sourceService = (SourceService) tuShareService;
 		}else {
-			sourceRet = ((SourceService)eastMoneyService).source(sourceName, columnNames, conditions);
+			return new ResultSupport<String>().fail("SOURCE_TYPE_NOT_SUPPORT", sourceType);
+		}
+		
+		if(securitiesCode != null) {
+			sourceRet = sourceService.source(sourceName, securitiesCode, columnNames, conditions);
+		}else {
+			sourceRet = sourceService.source(sourceName, columnNames, conditions);
 		}
 		
 		String sourceRetJSONString = JSON.toJSONString(sourceRet);
@@ -60,7 +73,15 @@ public class SecuritiesSourceLogTask extends AbstractSecuritiesTask{
 	}
 	
 	public static void main(String[] args) {
+		Map<String, Object> params = Maps.newHashMap();
+		params.put("sourceName", "");
+		params.put("securitiesCode", "");
+		params.put("columnNames", "");
 		
+		Map<String, Object> conditiosns = Maps.newHashMap();
+		conditiosns.put("", "");
+		
+		params.put("conditiosns", conditiosns);
 	}
 
 }
