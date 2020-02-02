@@ -46,18 +46,14 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 		StringBuffer notTriggerDay = new StringBuffer();
 		StringBuffer triggerDay = new StringBuffer();
 		for(index = localDateTimeStart; index.isBefore(localDateTimeEnd); index = index.plusDays(1)) {
-			ResultSupport<Date> weekTriggerDayRet = weekTriggerDay(argMap, "batch" + this.getClass().getSimpleName());
-			if(!weekTriggerDayRet.isSuccess()) {
-				if(ResultCode.NOT_WEEK_TRIGGER_DAY.equals(weekTriggerDayRet.getErrCode())) {
-					logger.error("title=" + "SecuritiesWeeklyTuSharePEReRunTask"
-							+ "$mode=" + "process"
-							+ "$errCode=" + ResultCode.NOT_WEEK_TRIGGER_DAY
-							+ "$errMsg=" + DateUtil.getDate(Date.from(index.atZone(ZoneId.systemDefault()).toInstant())));
-					notTriggerDay.append(DateUtil.getDate(Date.from(index.atZone(ZoneId.systemDefault()).toInstant()))).append(",");
-					continue;
-				}else {
-					return new ResultSupport<String>().fail(weekTriggerDayRet.getErrCode(), weekTriggerDayRet.getErrMsg());
-				}
+			boolean weekTriggerDay = weekTrigger(Date.from(index.atZone(ZoneId.systemDefault()).toInstant()));
+			if(!weekTriggerDay) {
+				logger.error("title=" + "SecuritiesWeeklyTuSharePEReRunTask"
+						+ "$mode=" + "process"
+						+ "$errCode=" + ResultCode.NOT_WEEK_TRIGGER_DAY
+						+ "$errMsg=" + DateUtil.getDate(Date.from(index.atZone(ZoneId.systemDefault()).toInstant())));
+				notTriggerDay.append(DateUtil.getDate(Date.from(index.atZone(ZoneId.systemDefault()).toInstant()))).append(",");
+				continue;
 			}else {
 				//ResultSupport<String> processRet = process(taskParam, argMap, weekTriggerDayRet.getModel());
 				triggerDay
