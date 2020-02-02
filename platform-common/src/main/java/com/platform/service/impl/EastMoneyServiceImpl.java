@@ -126,20 +126,28 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 	@Override
 	public ResultSupport<List<Map<String, Object>>> source(String sourceName, String securitiesCode,
 			String columnNames, Map<String, Object> conditions) {
-		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
-		
+
 		ParamsHandler paramsHander = sourceParamsHandler.get(sourceName);
 		ResultHandler resultHandler = sourceResultHandler.get(sourceName);
 		
-		Preconditions.checkNotNull(paramsHander);
-		Preconditions.checkNotNull(resultHandler);
+		return source(sourceName, securitiesCode, columnNames, conditions, paramsHander, resultHandler);
 		
-		ResultSupport<Map<String, Object>> sourceRet = source(securitiesCode, conditions, paramsHander) ;
+	}
+	
+	private ResultSupport<List<Map<String, Object>>> source(String sourceName, String securitiesCode,
+			String columnNames, Map<String, Object> conditions, ParamsHandler paramsHandler, ResultHandler resultHandler) {
+		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
+		
+		ResultSupport<Map<String, Object>> sourceRet = source(securitiesCode, conditions, paramsHandler) ;
 		if(!sourceRet.isSuccess()) {
 			return ret.fail(sourceRet.getErrCode(), sourceRet.getErrMsg());
 		}
 		
-		List<Map<String, Object>> model = resultHandler.apply(securitiesCode, sourceRet.getModel());
+		List<Map<String, Object>> model = Lists.newArrayList(sourceRet.getModel());
+		if(resultHandler != null) {
+			model = resultHandler.apply(securitiesCode, sourceRet.getModel());
+		}
+			
 		return ret.success(model);
 	}
 	
@@ -161,8 +169,15 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 		
 		String secId = 	eastMoneySecuritiesCode(securitiesCode);
 		
-		Map<String, String> params = paramsHandler.apply(secId, conditions);
-		
+		Map<String, String> params = null; 
+				
+		if(paramsHandler != null) {
+			params = paramsHandler.apply(secId, conditions);
+		}else {
+			params = conditions.entrySet().stream()
+					.collect(Collectors.toMap(kv -> kv.getKey(), kv -> LangUtil.safeString(kv.getValue())));
+		}
+				
 		String url = url(params);
 		
 		return source(url);
