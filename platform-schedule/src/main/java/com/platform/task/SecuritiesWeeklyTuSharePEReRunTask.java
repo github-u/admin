@@ -46,7 +46,8 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 		StringBuffer notTriggerDay = new StringBuffer();
 		StringBuffer triggerDay = new StringBuffer();
 		for(index = localDateTimeStart; index.isBefore(localDateTimeEnd); index = index.plusDays(1)) {
-			boolean weekTriggerDay = weekTrigger(Date.from(index.atZone(ZoneId.systemDefault()).toInstant()));
+			Date theDay = Date.from(index.atZone(ZoneId.systemDefault()).toInstant());
+			boolean weekTriggerDay = weekTrigger(theDay);
 			if(!weekTriggerDay) {
 				logger.error("title=" + "SecuritiesWeeklyTuSharePEReRunTask"
 						+ "$mode=" + "process"
@@ -55,10 +56,10 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 				notTriggerDay.append(DateUtil.getDate(Date.from(index.atZone(ZoneId.systemDefault()).toInstant()))).append(",");
 				continue;
 			}else {
-				//ResultSupport<String> processRet = process(taskParam, argMap, weekTriggerDayRet.getModel());
+				ResultSupport<String> processRet = process(taskParam, argMap, theDay);
 				triggerDay
 				.append(DateUtil.getDate(Date.from(index.atZone(ZoneId.systemDefault()).toInstant())))
-				//.append("^").append(processRet.getModel())
+				.append("^").append(processRet.getModel())
 				.append(",");
 			}
 			
