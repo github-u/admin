@@ -18,7 +18,7 @@ import com.platform.utils.LangUtil;
 import com.platform.utils.SecuritiesUtils;
 
 @Component
-public class SecuritiesWeeklyEastMoneyPETask extends AbstractSecuritiesCodesIteratorWeeklySupportTask{
+public class SecuritiesWeeklyEastMoneyPETask extends AbstractSecuritiesCodesIteratorWeeklyTask{
 	
 	//private static Logger logger = LoggerFactory.getLogger(SecuritiesCodesTask.class);
 	

@@ -18,7 +18,7 @@ import com.platform.utils.LangUtil;
 import com.platform.utils.SecuritiesUtils;
 
 @Component
-public class SecuritiesWeeklyTuSharePETask extends AbstractSecuritiesCodesIteratorWeeklySupportTask{
+public class SecuritiesWeeklyTuSharePETask extends AbstractSecuritiesCodesIteratorWeeklyTask{
 	
 	//private static Logger logger = LoggerFactory.getLogger(SecuritiesCodesTask.class);
 	
@@ -80,10 +80,6 @@ public class SecuritiesWeeklyTuSharePETask extends AbstractSecuritiesCodesIterat
 			return new ResultSupport<String>().success(LangUtil.convert(getRet.getModel(), String.class));
 		}
 		
-	}
-	
-	public static void main(String[] args) {
-
 	}
 
 }

@@ -19,6 +19,7 @@ import com.platform.service.EastMoneyService;
 import com.platform.service.TuShareService;
 import com.platform.service.impl.SourceService;
 import com.platform.service.impl.SourceService.Source;
+import com.platform.utils.DateUtil;
 import com.platform.utils.LangUtil;
 import com.platform.utils.SecuritiesUtils;
 
@@ -88,15 +89,17 @@ public class SecuritiesSourceLogTask extends AbstractSecuritiesTask{
 		conditions.put("fields2", "f51,f52,f53,f54,f55,f56,f57,f58");
 		conditions.put("klt", "103");
 		conditions.put("fqt", "1");
-		//conditions.put("beg", beg);
-		//conditions.put("end", end);
+		conditions.put("beg", "20200101");
+		conditions.put("end", "20200202");
 		conditions.put("smplmt", "460");
 		conditions.put("_", String.valueOf(new Date().getTime()));
 		
 		
-		params.put("conditiosns", conditions);
+		params.put("conditions", conditions);
 		
 		System.out.println(JSON.toJSONString(params));
+		
+		System.out.println(DateUtil.getDate("2020-01-04 15:00:00").getTime());
 	}
 
 }
