@@ -45,7 +45,7 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 		LocalDateTime index;
 		StringBuffer notTriggerDay = new StringBuffer();
 		StringBuffer triggerDay = new StringBuffer();
-		for(index = localDateTimeStart; index.isBefore(localDateTimeEnd); index = localDateTimeStart.plusDays(1)) {
+		for(index = localDateTimeStart; index.isBefore(localDateTimeEnd); index = index.plusDays(1)) {
 			ResultSupport<Date> weekTriggerDayRet = weekTriggerDay(argMap, "batch" + this.getClass().getSimpleName());
 			if(!weekTriggerDayRet.isSuccess()) {
 				if(ResultCode.NOT_WEEK_TRIGGER_DAY.equals(weekTriggerDayRet.getErrCode())) {
