@@ -32,7 +32,7 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 	public ResultSupport<String> process(SimpleTaskParam taskParam, Map<String, String> argMap) {
 		
 		String start = LangUtil.safeString(argMap.get("start"));
-		String end = LangUtil.safeString(argMap.get("start"));
+		String end = LangUtil.safeString(argMap.get("end"));
 		
 		Date s = DateUtil.getDate(start);
 		Date e = DateUtil.getDate(end);
