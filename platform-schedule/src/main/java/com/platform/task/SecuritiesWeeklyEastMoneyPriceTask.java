@@ -39,7 +39,7 @@ public class SecuritiesWeeklyEastMoneyPriceTask extends AbstractSecuritiesCodesI
 		conditions.put("fields1", "f1,f2,f3,f4,f5");
 		conditions.put("fields2", "f51,f52,f53,f54,f55,f56,f57,f58");
 		conditions.put("klt", "101");
-		conditions.put("fqt", "0");
+		conditions.put("fqt", "1");
 		conditions.put("beg", DateUtil.getDate(date, DateUtil.DAY_FORMATTER_2));
 		conditions.put("end", DateUtil.getDate(date, DateUtil.DAY_FORMATTER_2));
 		conditions.put("smplmt", "460");
