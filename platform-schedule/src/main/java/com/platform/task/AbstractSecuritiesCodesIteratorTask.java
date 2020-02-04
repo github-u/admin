@@ -31,7 +31,11 @@ public abstract class AbstractSecuritiesCodesIteratorTask extends AbstractSecuri
 		String paramSecuritiesCodes = LangUtil.safeString(argMap.get("securitiesCodes"));
 		String queryPerSeconds = LangUtil.safeString(argMap.get("QPS"));
 		try {
-			rateLimiter.setRate(Double.parseDouble(queryPerSeconds));
+			if(queryPerSeconds != null) {
+				rateLimiter.setRate(Double.parseDouble(queryPerSeconds));
+			}else {
+				rateLimiter.setRate(Double.MAX_VALUE);
+			}
 		}catch(Exception e) {
 			logger.error("title=" + "AbstractSecuritiesCodesIteratorTask"
 					+ "$mode=" + "process"
