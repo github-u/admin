@@ -131,7 +131,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions, 
-			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor,
+			Function<Map<String, Object>, List<Map<String, Object>>> postSourceProcessor,
 			Function<String, String> postSourceTableNameAliasProcessor,
 			boolean parallel){
 		
@@ -202,7 +202,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions,
-			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor, 
+			Function<Map<String, Object>, List<Map<String, Object>>> postSourceProcessor, 
 			Function<String, String> postSourceTableNameAliasProcessor,
 			boolean parallel){
 		
@@ -303,7 +303,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	private ResultSupport<List<Map<String, Object>>> postSourceProcess(
 			List<Map<String, Object>> model, 
-			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor,
+			Function<Map<String, Object>, List<Map<String, Object>>> postSourceProcessor,
 			String tableName, 
 			String columnNames, 
 			String uniqColumnNames,
@@ -322,9 +322,9 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 					stream = model.parallelStream();
 				}
 				transformedModel = stream
-						.map(oneSecuritiesTuple ->{
+						.flatMap(oneSecuritiesTuple ->{
 							try {
-								return postSourceProcessor.apply(oneSecuritiesTuple);
+								return postSourceProcessor.apply(oneSecuritiesTuple).stream();
 							}catch(Exception e) {
 								logger.error("title=" + "SecuritiesService"
 										+ "$mode=" + "getBatch"
@@ -336,7 +336,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 										+ "$oneSecuritiesTuple=" + JSON.toJSONString(oneSecuritiesTuple), e);
 								throw e;
 							}
-						})			
+						})		
 						.collect(Collectors.toList());
 			}catch(Exception e) {
 				return ret.fail(ResultCode.GET_BATCH_POST_SOURCE_TRRANSFER_EXCEPTION, e.getMessage());

@@ -3,6 +3,7 @@ package com.platform.task;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
@@ -86,10 +88,10 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 				"ts_code,trade_date,close,turnover_rate,turnover_rate_f,volume_ratio,pe,pe_ttm,pb,ps,ps_ttm,total_share,float_share,free_share,total_mv,circ_mv", 
 				"code,year,week", 
 				conditions,
-				new Function<Map<String, Object>, Map<String, Object>>() {
+				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override
-					public Map<String, Object> apply(Map<String, Object> paramT) {
+					public List<Map<String, Object>> apply(Map<String, Object> paramT) {
 						
 						String tsCode = LangUtil.convert(paramT.get("ts_code"), String.class);
 						String code = tsCode.split("\\.")[0];
@@ -105,7 +107,7 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 						paramT.put("trade_date", tradeDate);
 						paramT.put("ts_pe_ttm", paramT.get("pe_ttm"));
 						
-						return paramT;
+						return Lists.newArrayList(paramT);
 					}
 					
 				},

@@ -1,5 +1,6 @@
 package com.platform.task;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -9,6 +10,7 @@ import javax.annotation.Resource;
 //import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
@@ -37,10 +39,10 @@ public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 				"ts_code,symbol,name,area,industry,fullname,enname,market,exchange,curr_type,list_status,list_date,delist_date,is_hs", 
 				"ts_code", 
 				Maps.newHashMap(),
-				new Function<Map<String, Object>, Map<String, Object>>() {
+				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override
-					public Map<String, Object> apply(Map<String, Object> paramT) {
+					public List<Map<String, Object>> apply(Map<String, Object> paramT) {
 						
 						String tsCode = LangUtil.convert(paramT.get("ts_code"), String.class);
 						String code = tsCode.split("\\.")[0];
@@ -52,7 +54,7 @@ public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 						paramT.put("name", name);
 						paramT.put("em_code", emCode);
 						
-						return paramT;
+						return Lists.newArrayList(paramT);
 					}
 					
 				},

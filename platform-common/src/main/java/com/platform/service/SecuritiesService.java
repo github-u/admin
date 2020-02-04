@@ -32,7 +32,7 @@ public interface SecuritiesService {
 	
 	ResultSupport<Long> get(String type, String tableName, String securitiesCode,
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions,
-			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor, 
+			Function<Map<String, Object>, List<Map<String, Object>>> postSourceProcessor, 
 			Function<String, String> postSourceTableNameAliasProcessor,
 			boolean parallel);
 	
@@ -41,7 +41,7 @@ public interface SecuritiesService {
 	
 	ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions,
-			Function<Map<String, Object>, Map<String, Object>> postSourceProcessor, 
+			Function<Map<String, Object>, List<Map<String, Object>>> postSourceProcessor, 
 			Function<String, String> postSourceTableNameAliasProcessor,
 			boolean parallel);
 	

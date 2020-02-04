@@ -1,6 +1,7 @@
 package com.platform.task;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -8,6 +9,7 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
@@ -50,26 +52,36 @@ public class SecuritiesWeeklyEastMoneyPriceTask extends AbstractSecuritiesCodesI
 				"", 
 				"code,year,week", 
 				conditions,
-				new Function<Map<String, Object>, Map<String, Object>>() {
+				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override
-					public Map<String, Object> apply(Map<String, Object> paramT) {
+					public List<Map<String, Object>> apply(Map<String, Object> paramT) {
 						
-						String tsCode = LangUtil.convert(paramT.get("ts_code"), String.class);
-						String code = tsCode.split("\\.")[0];
+						List<Map<String, Object>> ret = Lists.newArrayList();
+						
+						@SuppressWarnings("unchecked")
+						List<String> klines = (List<String>) paramT.get("klines");
 						
 						long year = DateUtil.getYear(date);
 						long week = DateUtil.getWeekOfYear(date);
-						
 						String tradeDate = DateUtil.getDate(date, DateUtil.DAY_FORMATTER_1);
-						
-						paramT.put("code", code);
-						paramT.put("year", year);
-						paramT.put("week", week);
-						paramT.put("trade_date", tradeDate);
-						paramT.put("ts_pe_ttm", paramT.get("pe_ttm"));
-						
-						return paramT;
+
+						for(String kline : klines) {
+							Map<String, Object> klineMap = Maps.newLinkedHashMap();
+							
+							String[] klineArray = kline.split(",");
+							klineMap.put("code", securitiesCode);
+							klineMap.put("year", year);
+							klineMap.put("week", week);
+							klineMap.put("trade_date", tradeDate);
+							klineMap.put("em_open", klineArray[1]);
+							klineMap.put("em_high", klineArray[3]);
+							klineMap.put("em_low", klineArray[4]);
+							klineMap.put("em_close", klineArray[2]);
+							ret.add(klineMap);
+						}
+
+						return ret;
 					}
 					
 				},
