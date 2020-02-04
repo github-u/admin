@@ -87,8 +87,8 @@ public class SecuritiesSourceLogTask extends AbstractSecuritiesTask{
 		conditions.put("ut", "fa5fd1943c7b386f172d6893dbfba10b");
 		conditions.put("fields1", "f1,f2,f3,f4,f5");
 		conditions.put("fields2", "f51,f52,f53,f54,f55,f56,f57,f58");
-		conditions.put("klt", "103");
-		conditions.put("fqt", "1");
+		conditions.put("klt", "101");
+		conditions.put("fqt", "0");
 		conditions.put("beg", "20200101");
 		conditions.put("end", "20200202");
 		conditions.put("smplmt", "460");
