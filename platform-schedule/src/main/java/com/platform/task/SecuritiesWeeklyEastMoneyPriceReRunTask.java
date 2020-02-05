@@ -121,5 +121,10 @@ public class SecuritiesWeeklyEastMoneyPriceReRunTask extends AbstractSecuritiesC
 		}
 		
 	}
+	
+	public static void main(String[] args) {
+		Date d = DateUtil.getDate("2019-01-02", DateUtil.DAY_FORMATTER_1);
+		System.out.println(d);
+	}
 
 }

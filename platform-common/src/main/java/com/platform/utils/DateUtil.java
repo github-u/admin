@@ -1,5 +1,6 @@
 package com.platform.utils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -113,8 +114,16 @@ public class DateUtil {
 		
 		Preconditions.checkNotNull(date);
 		try {
-			LocalDateTime localDateTime = LocalDateTime.parse(date, SENCONDS_FORMATTER);
-			return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+			if(DAY_FORMATTER_1.equals(dateTimeFormatter) || DAY_FORMATTER_2.equals(dateTimeFormatter)) {
+				LocalDate localDate = LocalDate.parse(date, dateTimeFormatter);
+				LocalDateTime localDateTime = localDate.atStartOfDay();
+				return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+			}else if(SENCONDS_FORMATTER.equals(dateTimeFormatter)){
+				LocalDateTime localDateTime = LocalDateTime.parse(date, dateTimeFormatter);
+				return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+			}else {
+				return null;
+			}
 		}catch(Exception e) {
 			logger.error("title=" + "DateUtil"
                     + "$mode=" + "getDateD"
