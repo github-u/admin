@@ -47,6 +47,7 @@ public class SecuritiesWeeklyEastMoneyPriceReRunTask extends AbstractSecuritiesC
 		conditions.put("smplmt", "460");
 		conditions.put("_", String.valueOf(new Date().getTime()));
 		
+		StringBuffer sb = new StringBuffer(securitiesCode).append("=");
 		ResultSupport<Long> getRet = securitiesService.get(
 				Source.EAST_MONEY, 
 				"", 
@@ -70,11 +71,13 @@ public class SecuritiesWeeklyEastMoneyPriceReRunTask extends AbstractSecuritiesC
 							
 							Date date = DateUtil.getDate(klineArray[0], DateUtil.DAY_FORMATTER_1);
 							if(!weekTrigger(date)) {
+								/**
 								logger.error("title=" + "AbstractSecuritiesCodesIteratorWeeklySupportTask"
 										+ "$mode=" + "process"
 										+ "$code=" + securitiesCode + "^" + klineArray[0]
 										+ "$errCode=" + ResultCode.NOT_WEEK_TRIGGER_DAY
 										+ "$date=" + date);
+								 */
 								continue;
 							}else {
 								long year = DateUtil.getYear(date);
@@ -82,7 +85,6 @@ public class SecuritiesWeeklyEastMoneyPriceReRunTask extends AbstractSecuritiesC
 								String tradeDate = DateUtil.getDate(date, DateUtil.DAY_FORMATTER_1);
 
 								Map<String, Object> klineMap = Maps.newLinkedHashMap();
-								
 								
 								klineMap.put("code", securitiesCode);
 								klineMap.put("year", year);
@@ -92,12 +94,11 @@ public class SecuritiesWeeklyEastMoneyPriceReRunTask extends AbstractSecuritiesC
 								klineMap.put("em_high", klineArray[3]);
 								klineMap.put("em_low", klineArray[4]);
 								klineMap.put("em_close", klineArray[2]);
-								//ret.add(klineMap);
-								logger.error("title=" + "AbstractSecuritiesCodesIteratorWeeklySupportTask"
-										+ "$mode=" + "process"
-										+ "$code=" + securitiesCode + "^" + klineArray[0]
-										+ "$errCode=" + "T_S_D"
-										+ "$date=" + date);
+								
+								sb.append(tradeDate).append("^");
+								
+								ret.add(klineMap);
+								
 							}
 						}
 
@@ -114,6 +115,11 @@ public class SecuritiesWeeklyEastMoneyPriceReRunTask extends AbstractSecuritiesC
 				,parallel
 				);
 		
+		logger.error("title=" + "SecuritiesWeeklyEastMoneyPriceReRunTask"
+				+ "$mode=" + "process"
+				+ "$code=" + securitiesCode
+				+ "$errCode=" + "SUC"
+				+ "$errMsg=" + sb.toString());
 		if(!getRet.isSuccess()) {
 			return new ResultSupport<String>().fail(getRet.getErrCode(), getRet.getErrMsg());
 		}else {
