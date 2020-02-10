@@ -55,6 +55,7 @@ public class SecuritiesWeeklyEastMoneyPriceReRunTask extends AbstractSecuritiesC
 				"", 
 				"code,year,week", 
 				conditions,
+				null,
 				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override

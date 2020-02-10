@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.stream.Collector;
@@ -39,19 +38,6 @@ import com.platform.utils.SecuritiesUtils;
 
 public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 
-	public static final String PUSH2HIS_PREFIX = "http://";
-	
-	public static final String PUSH2HIS_SUFFIX = ".push2his.eastmoney.com";
-	
-	public static final String KLINES_URL_PATH = "/api/qt/stock/kline/get";
-	
-	public static Random RANDOM = new Random();
-	
-	public static String getPush2HisUrl() {
-		int n = RANDOM.nextInt(99);
-		return PUSH2HIS_PREFIX + n +PUSH2HIS_SUFFIX;
-	}
-	
 	private static Logger logger = LoggerFactory.getLogger(EastMoneyServiceImpl.class);
 	
 	//securitiesCode, value --> value
@@ -140,7 +126,7 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 			String columnNames, Map<String, Object> conditions, ParamsHandler paramsHandler, ResultHandler resultHandler) {
 		ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
 		
-		ResultSupport<Map<String, Object>> sourceRet = source(securitiesCode, conditions, paramsHandler) ;
+		ResultSupport<Map<String, Object>> sourceRet = source(sourceName, securitiesCode, conditions, paramsHandler) ;
 		if(!sourceRet.isSuccess()) {
 			return ret.fail(sourceRet.getErrCode(), sourceRet.getErrMsg());
 		}
@@ -155,7 +141,7 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 	
 	@Override
 	public ResultSupport<Map<String, Object>> getKLinesOfMonth(String securitiesCode, String paramStart, String paramEnd) {
-		return source(securitiesCode, null, sourceParamsHandler.get("east_money_monthly"));
+		return source("east_money_monthly", securitiesCode, null, sourceParamsHandler.get("east_money_monthly"));
 	}
 	
 	private String eastMoneySecuritiesCode(String securitiesCode) {
@@ -166,7 +152,7 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 		
 	}
 	
-	private ResultSupport<Map<String, Object>> source(String securitiesCode, Map<String, Object> conditions, 
+	private ResultSupport<Map<String, Object>> source(String sourceName, String securitiesCode, Map<String, Object> conditions, 
 			ParamsHandler paramsHandler) {
 		
 		String secId = 	eastMoneySecuritiesCode(securitiesCode);
@@ -193,18 +179,18 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 							));
 		}
 		
-		String url = url(params);
+		String url = url(sourceName, params);
 		
 		return source(url);
 		
 	}
 	
-	private String url(Map<String, String> param) {
+	private String url(String sourceName, Map<String, String> param) {
 		
 		AtomicBoolean firstParam = new AtomicBoolean(Boolean.TRUE);
 
 		StringBuffer url = param.entrySet().stream().reduce(
-				new StringBuffer(getPush2HisUrl() + KLINES_URL_PATH)
+				new StringBuffer(sourceName)
 				, (s, e) -> {
 					if(firstParam.get()) {
 						s.append("?").append(e.getKey()).append("=").append(e.getValue());
@@ -222,7 +208,7 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 		
 	}
 	
-	public ResultSupport<Map<String, Object>> source(String url) {
+	public static ResultSupport<Map<String, Object>> source(String url) {
 		ResultSupport<Map<String, Object>> ret = new ResultSupport<Map<String, Object>> ();
 		
 		HttpGet httpGet = new HttpGet(url);
@@ -239,10 +225,26 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
             
             String httpEntity = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             
-            JSONObject jsonEastMoneyResult = JSON.parseObject(httpEntity);
-            JSONObject jsonEastMoneyData = jsonEastMoneyResult.getJSONObject("data");
+            ResultSupport<Map<String, Object>> parseJSONRet = parseJSON(httpEntity);
+            if(!parseJSONRet.isSuccess() 
+            		&& parseJSONRet.getErrCode().equals(EastMoneyService.ResultCode.HTTP_RESULT_MAYBE_NESTED_JSON_STRING)) {
+            	ResultSupport<Map<String, Object>> parseJSONAgainRet = parseJSON(parseJSONRet.getErrMsg());
+            	if(!parseJSONAgainRet.isSuccess()) {
+
+                    logger.error("title=" + "EastMoneyService"
+                            + "$mode=" + "source"
+                            + "$errCode=" + parseJSONAgainRet.getErrCode()
+                            + "$errMsg=" + parseJSONAgainRet.getErrMsg()
+                            + "$url=" + url
+                            + "$model=" + httpEntity);
+                    
+            		return ret.fail(parseJSONAgainRet.getErrCode(), parseJSONAgainRet.getErrMsg());
+            	}else {
+            		return ret.success(parseJSONAgainRet.getModel());
+            	}
+            }
             
-            return ret.success(jsonEastMoneyData);
+            return ret.success(parseJSONRet.getModel());
             
         } catch (Exception e) {
             logger.error("title=" + "EastMoneyService"
@@ -255,6 +257,33 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
         }
 	}
 	
+	private static ResultSupport<Map<String, Object>> parseJSON(String httpEntity){
+		
+		ResultSupport<Map<String, Object>> ret = new ResultSupport<Map<String, Object>>();
+		
+		Object obj = JSON.parse(httpEntity);
+        if(obj instanceof JSONObject) {
+        	JSONObject jsonEastMoneyResult = (JSONObject) obj;
+            JSONObject jsonEastMoneyData = jsonEastMoneyResult.getJSONObject("data");
+            
+            return ret.success(jsonEastMoneyData);
+        }
+        
+        if(obj instanceof JSONArray) {
+        	Map<String, Object> model = Maps.newHashMap();
+        	model.put(Result.JSON_ARRAY_KEY, obj);
+            
+            return ret.success(model);
+        }
+        
+        if(obj instanceof String) {
+        	return ret.fail(EastMoneyService.ResultCode.HTTP_RESULT_MAYBE_NESTED_JSON_STRING, obj.toString());
+        }
+        
+        return ret.fail(EastMoneyService.ResultCode.HTTP_RESULT_ILLEGAL_JSON_PATTERN, "");
+        
+	}
+	
 	public static void main(String[] args) throws Exception {
 		
 		//EastMoneyServiceImpl eastMoneyServiceImpl = new EastMoneyServiceImpl();
@@ -263,7 +292,9 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 		
 		//System.out.println(obj);
 		
-		monthly();
+		//monthly();
+		
+		System.out.println(source("http://f10.eastmoney.com/NewFinanceAnalysis/lrbAjax?companyType=3&reportDateType=0&reportType=1&endDate=&code=SZ000001"));
 		
 	}
 
@@ -361,6 +392,6 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
 			Map<String, Object> conditions) {
 		throw new RuntimeException("Not support yet");
 	}
-
+	
 	
 }

@@ -28,4 +28,10 @@ public interface SourceService {
 		
 	}
 	
+	public static final class Result{
+		
+		public static final String JSON_ARRAY_KEY = "__jsonArray";
+		
+	}
+	
 }

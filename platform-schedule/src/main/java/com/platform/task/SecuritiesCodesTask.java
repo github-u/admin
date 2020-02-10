@@ -39,6 +39,7 @@ public class SecuritiesCodesTask extends AbstractSecuritiesTask{
 				"ts_code,symbol,name,area,industry,fullname,enname,market,exchange,curr_type,list_status,list_date,delist_date,is_hs", 
 				"ts_code", 
 				Maps.newHashMap(),
+				null,
 				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override

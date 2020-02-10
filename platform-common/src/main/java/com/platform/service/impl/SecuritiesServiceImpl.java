@@ -126,18 +126,20 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
-		return getBatch(type, tableName, columnNames, uniqColumnNames, conditions, null, null, false);
+		return getBatch(type, tableName, columnNames, uniqColumnNames, conditions, null, null, null, false);
 	}
 	
 	public ResultSupport<Long> getBatch(String type, String tableName, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions, 
+			Function<String, String> beforeSourceTableNameAliasProcessor,
 			Function<Map<String, Object>, List<Map<String, Object>>> postSourceProcessor,
 			Function<String, String> postSourceTableNameAliasProcessor,
 			boolean parallel){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
 		
-		ResultSupport<List<Map<String, Object>>> dataRet = source(type, tableName, columnNames, conditions);
+		String sourceNameAlias = sourceNameAlias(beforeSourceTableNameAliasProcessor, tableName);
+		ResultSupport<List<Map<String, Object>>> dataRet = source(type, sourceNameAlias, columnNames, conditions);
 		if(!dataRet.isSuccess()) {
 			return ret.fail(dataRet.getErrCode(), dataRet.getErrMsg());
 		}
@@ -197,18 +199,20 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	
 	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions){
-		return get(type, tableName, securitiesCode, columnNames, uniqColumnNames, conditions, null, null, false);
+		return get(type, tableName, securitiesCode, columnNames, uniqColumnNames, conditions, null, null, null, false);
 	}
 	
 	public ResultSupport<Long> get(String type, String tableName, String securitiesCode, 
 			String columnNames, String uniqColumnNames, Map<String, Object> conditions,
+			Function<String, String> beforeSourceTableNameAliasProcessor,
 			Function<Map<String, Object>, List<Map<String, Object>>> postSourceProcessor, 
 			Function<String, String> postSourceTableNameAliasProcessor,
 			boolean parallel){
 		
 		ResultSupport<Long> ret = new ResultSupport<Long>();
 		
-		ResultSupport<List<Map<String, Object>>> dataRet = source(type, tableName, securitiesCode, columnNames, conditions);
+		String sourceNameAlias = sourceNameAlias(beforeSourceTableNameAliasProcessor, tableName);
+		ResultSupport<List<Map<String, Object>>> dataRet = source(type, sourceNameAlias, securitiesCode, columnNames, conditions, null);
 		if(!dataRet.isSuccess()) {
 			return ret.fail(dataRet.getErrCode(), dataRet.getErrMsg());
 		}
@@ -279,7 +283,7 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 	}
 	
 	public ResultSupport<List<Map<String, Object>>> source(String type, String sourceName, String securitiesCode, 
-			String columnNames, Map<String, Object> conditions) {
+			String columnNames, Map<String, Object> conditions, Function<String, String> beforeSourceTableNameAliasProcessor) {
 		
 		SourceService sourceService = sourceService(type);
 		
@@ -299,6 +303,14 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 		Preconditions.checkNotNull(sourceService);
 		
 		return sourceService;
+	}
+	
+	private String sourceNameAlias(Function<String, String> beforeSourceTableNameAliasProcessor, String sourceName) {
+		String sourceNameAlias = sourceName;
+		if(beforeSourceTableNameAliasProcessor != null) {
+			sourceNameAlias = beforeSourceTableNameAliasProcessor.apply(sourceName);
+		}
+		return sourceNameAlias;
 	}
 	
 	private ResultSupport<List<Map<String, Object>>> postSourceProcess(

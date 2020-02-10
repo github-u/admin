@@ -103,8 +103,17 @@ public class SecuritiesTaskSupport{
 		return ret.success(date);
 	}
 	
+	protected boolean quarterTrigger(Date date) {
+		return lastQuarterDay(date);
+	}
+	
 	protected boolean weekTrigger(Date date) {
 		return lastWeekTradeDay(date);
+	}
+	
+	protected boolean lastQuarterDay(Date date) {
+		Date lastQuarterDay = DateUtil.getLastQuarterDay(date);
+		return DateUtil.isSameDay(lastQuarterDay, date);
 	}
 	
 	protected boolean lastWeekTradeDay(Date date) {

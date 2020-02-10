@@ -21,6 +21,10 @@ public interface EastMoneyService {
         
         public static final String HTTP_CLIENT_EXECUTE_EXCEPTION = "HTTP_CLIENT_EXECUTE_EXCEPTION";
         
+        public static final String HTTP_RESULT_ILLEGAL_JSON_PATTERN = "HTTP_RESULT_ILLEGAL_JSON_PATTERN";
+        
+        public static final String HTTP_RESULT_MAYBE_NESTED_JSON_STRING = "HTTP_RESULT_MAYBE_NESTED_JSON_STRING";
+        
         public static final String TUSHARE_SERVER_ERROR = "TUSHARE_SERVER_ERROR";
         
         public static final String ITEM_TRANS_EXCEPTION = "ITEM_TRANS_EXCEPTION";

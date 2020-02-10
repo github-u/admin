@@ -18,13 +18,17 @@ public class DateUtil {
 	
 	private static Logger logger = LoggerFactory.getLogger(DateUtil.class);
 	
-	public static final String SENCOND_PARTTERN = "yyyy-MM-dd HH:mm:ss";
+	public static final String SENCOND_PARTTERN_1 = "yyyy-MM-dd HH:mm:ss";
+	
+	public static final String SENCOND_PARTTERN_2 = "yyyy/MM/dd HH:mm:ss";
 	
 	public static final String DAY_PARTTERN_1 = "yyyy-MM-dd";
 	
 	public static final String DAY_PARTTERN_2 = "yyyyMMdd";
 	
-	public static final DateTimeFormatter SENCONDS_FORMATTER = DateTimeFormatter.ofPattern(SENCOND_PARTTERN);
+	public static final DateTimeFormatter SENCONDS_FORMATTER_1 = DateTimeFormatter.ofPattern(SENCOND_PARTTERN_1);
+	
+	public static final DateTimeFormatter SENCONDS_FORMATTER_2 = DateTimeFormatter.ofPattern(SENCOND_PARTTERN_2);
 	
 	public static final DateTimeFormatter DAY_FORMATTER_1 = DateTimeFormatter.ofPattern(DAY_PARTTERN_1);
 	
@@ -40,6 +44,34 @@ public class DateUtil {
 		
 		return d1.getYear() == d2.getYear() &&
 				d1.getDayOfYear() == d2.getDayOfYear();
+	}
+	
+	public static Integer getQuarterOfYear(Date date) {
+		Preconditions.checkNotNull(date);
+		return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).get(IsoFields.QUARTER_OF_YEAR);
+	}
+	
+	public static Date getLastQuarterDay(Date date){
+		
+		int quarter = getQuarterOfYear(date);
+		
+		LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+		if(quarter == 1) {
+			LocalDateTime lastQuarterDateTime = localDateTime.withMonth(3).withDayOfMonth(31).withHour(0).withMinute(0).withSecond(0).withNano(0);
+			return Date.from(lastQuarterDateTime.atZone(ZoneId.systemDefault()).toInstant());
+		}else if(quarter == 2) {
+			LocalDateTime lastQuarterDateTime = localDateTime.withMonth(6).withDayOfMonth(30).withHour(0).withMinute(0).withSecond(0).withNano(0);
+			return Date.from(lastQuarterDateTime.atZone(ZoneId.systemDefault()).toInstant());
+		}else if(quarter == 3) {
+			LocalDateTime lastQuarterDateTime = localDateTime.withMonth(9).withDayOfMonth(30).withHour(0).withMinute(0).withSecond(0).withNano(0);
+			return Date.from(lastQuarterDateTime.atZone(ZoneId.systemDefault()).toInstant());
+		}else if(quarter == 4) {
+			LocalDateTime lastQuarterDateTime = localDateTime.withMonth(12).withDayOfMonth(31).withHour(0).withMinute(0).withSecond(0).withNano(0);
+			return Date.from(lastQuarterDateTime.atZone(ZoneId.systemDefault()).toInstant());
+		}else {
+			throw new RuntimeException();
+		}
+		
 	}
 	
 	public static List<Date> getWeekDays(Date date){
@@ -67,11 +99,11 @@ public class DateUtil {
 	}
 	
 	public static String getDate(Date date) {
-		return getDate(date, SENCONDS_FORMATTER);
+		return getDate(date, SENCONDS_FORMATTER_1);
 	}
 	
 	public static Date getDate(String date) {
-		return getDate(date, SENCONDS_FORMATTER);
+		return getDate(date, SENCONDS_FORMATTER_1);
 	}
 	
 	public static List<Date> getWeekDays(int year, int week) {
@@ -118,7 +150,7 @@ public class DateUtil {
 				LocalDate localDate = LocalDate.parse(date, dateTimeFormatter);
 				LocalDateTime localDateTime = localDate.atStartOfDay();
 				return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-			}else if(SENCONDS_FORMATTER.equals(dateTimeFormatter)){
+			}else if(SENCONDS_FORMATTER_1.equals(dateTimeFormatter) || SENCONDS_FORMATTER_2.equals(dateTimeFormatter)){
 				LocalDateTime localDateTime = LocalDateTime.parse(date, dateTimeFormatter);
 				return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
 			}else {
@@ -135,6 +167,7 @@ public class DateUtil {
 	}
 	
 	public static void main(String[] args) {
+		/**
 		System.out.println(getWeekDays(2020, 2));
 		System.out.println(getWeekDays());
 		System.out.println(getDate(new Date(), DAY_FORMATTER_1));
@@ -142,5 +175,10 @@ public class DateUtil {
 		LocalDateTime localDateTime = LocalDateTime.now();
 		
 		localDateTime.getYear();
+		*/
+		//System.out.println(getDate("2019/9/30 0:00:00", SENCONDS_FORMATTER_2));
+		
+		System.out.println(getQuarterOfYear(new Date()));
+		
 	}
 }

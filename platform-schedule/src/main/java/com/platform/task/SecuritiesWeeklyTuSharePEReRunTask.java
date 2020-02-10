@@ -88,6 +88,7 @@ public class SecuritiesWeeklyTuSharePEReRunTask extends AbstractSecuritiesBatchW
 				"ts_code,trade_date,close,turnover_rate,turnover_rate_f,volume_ratio,pe,pe_ttm,pb,ps,ps_ttm,total_share,float_share,free_share,total_mv,circ_mv", 
 				"code,year,week", 
 				conditions,
+				null,
 				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override

@@ -52,6 +52,7 @@ public class SecuritiesWeeklyEastMoneyPETask extends AbstractSecuritiesCodesIter
 				"", 
 				"code,year,week", 
 				conditions,
+				null,
 				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override
