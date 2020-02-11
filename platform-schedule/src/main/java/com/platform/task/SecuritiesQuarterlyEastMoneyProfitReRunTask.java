@@ -180,5 +180,5 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 		Date d = DateUtil.getDate("2019-01-02", DateUtil.DAY_FORMATTER_1);
 		System.out.println(d);
 	}
-
+	
 }
