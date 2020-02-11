@@ -45,7 +45,7 @@ public abstract class AbstractSecuritiesCodesIteratorTask extends AbstractSecuri
 		
 		ResultSupport<List<String>> securitiesCodesRet = null; 
 		if(paramSecuritiesCodes != null) {
-			List<String> securitiesCodes = Lists.newArrayList(paramSecuritiesCodes.split("^"));
+			List<String> securitiesCodes = Lists.newArrayList(paramSecuritiesCodes.split("\\^"));
 			securitiesCodesRet = new ResultSupport<List<String>>().success(securitiesCodes);
 		}else {
 			securitiesCodesRet = securitiesService.getSecuritiesCodes();
@@ -70,8 +70,6 @@ public abstract class AbstractSecuritiesCodesIteratorTask extends AbstractSecuri
 	
 	abstract protected ResultSupport<String> process(String securitiesCode, SimpleTaskParam taskParam, Map<String, String> argMap);
 	
-	public static void main(String[] args) {
-		
-	}
+	public static void main(String[] args) {}
 
 }

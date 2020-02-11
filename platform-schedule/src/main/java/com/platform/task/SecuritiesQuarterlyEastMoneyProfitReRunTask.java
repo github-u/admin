@@ -48,7 +48,8 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 		conditions.put("endDate", "");
 		conditions.put("reportType", "1");
 		conditions.put("reportDateType", "0");
-		conditions.put("companyType", "3");
+		conditions.put("companyType", companyType(securitiesCode));
+		//companyType=4&reportDateType=0&reportType=1&endDate=&code=SH600018
 		
 		StringBuffer sb = new StringBuffer(securitiesCode).append("=");
 		ResultSupport<Long> getRet = securitiesService.get(
@@ -162,6 +163,16 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 						null;
 		
 		return code;
+	}
+	
+	private String companyType(String securitiesCode) {
+		
+		int type = SecuritiesUtils.getSecuritiesType(securitiesCode);
+		String companyType = 	type == 0 ? "3":
+						type == 1 ? "4" :
+						"";
+		
+		return companyType;
 	}
 	
 	public static void main(String[] args) {
