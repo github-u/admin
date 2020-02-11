@@ -47,10 +47,11 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 		
 		Map<String, Object> conditions = Maps.newHashMap();
 		conditions.put("code", code(securitiesCode));
-		conditions.put("endDate", "");
+		conditions.put("endDate", argMap.get("endDate") != null ? argMap.get("endDate") : "");
 		conditions.put("reportType", "1");
 		conditions.put("reportDateType", "0");
 		conditions.put("companyType", companyType(securitiesCode));
+		//endDate=2018-09-30
 		//companyType=4&reportDateType=0&reportType=1&endDate=&code=SH600018
 		
 		StringBuffer sb = new StringBuffer(securitiesCode).append("=");
@@ -126,7 +127,7 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 								
 								sb.append(tradeDate).append("^");
 								
-								//ret.add(quarterMap);
+								ret.add(quarterMap);
 								
 							}
 						}
