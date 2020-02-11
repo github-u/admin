@@ -111,7 +111,7 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 								continue;
 							}else {
 								long year = DateUtil.getYear(date);
-								long quarter = DateUtil.getWeekOfYear(date);
+								long quarter = DateUtil.getQuarterOfYear(date);
 								String tradeDate = DateUtil.getDate(date, DateUtil.DAY_FORMATTER_1);
 								String netProfitAttrubutableToEquityHolders = LangUtil.safeString(jsonObject.get("PARENTNETPROFIT"));
 								String netProfitAfterDeductingNonRecurringGainAndLosses = LangUtil.safeString(jsonObject.get("KCFJCXSYJLR"));
