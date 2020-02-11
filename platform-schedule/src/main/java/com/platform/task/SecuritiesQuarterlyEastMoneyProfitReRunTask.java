@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.annotation.Resource;
@@ -18,6 +19,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
 import com.platform.service.EastMoneyService;
@@ -166,12 +168,10 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 	}
 	
 	private String companyType(String securitiesCode) {
-		
-		int type = SecuritiesUtils.getSecuritiesType(securitiesCode);
-		String companyType = 	type == 0 ? "3":
-						type == 1 ? "4" :
-						"";
-		
+		Set<String> whiteList = Sets.newHashSet(
+				"000001");
+ 		String companyType = whiteList.contains(securitiesCode)	? 
+ 				"3" : "4";
 		return companyType;
 	}
 	
