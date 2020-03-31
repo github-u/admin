@@ -72,7 +72,6 @@ public class SecuritiesDailyShareHoldersTask extends AbstractSecuritiesCodesIter
 						paramT.put("year", year);
 						paramT.put("quarter", quater);
 
-						//System.out.println(JSON.toJSONString(paramT));
 						return Lists.newArrayList(paramT);
 					}
 					
