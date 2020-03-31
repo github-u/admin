@@ -52,7 +52,7 @@ public class SecuritiesDailyShareHoldersTask extends AbstractSecuritiesCodesIter
 				"top10_floatholders", 
 				securitiesCode,
 				"ts_code,ann_date,end_date,holder_name,hold_amount", 
-				"code,year,quarter", 
+				"code,year,quarter,holder_name", 
 				conditions,
 				null,
 				new Function<Map<String, Object>, List<Map<String, Object>>>() {
@@ -92,5 +92,4 @@ public class SecuritiesDailyShareHoldersTask extends AbstractSecuritiesCodesIter
 		}
 		
 	}
-
 }
