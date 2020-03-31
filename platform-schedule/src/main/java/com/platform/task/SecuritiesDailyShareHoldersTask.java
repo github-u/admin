@@ -52,7 +52,7 @@ public class SecuritiesDailyShareHoldersTask extends AbstractSecuritiesCodesIter
 				"top10_floatholders", 
 				securitiesCode,
 				"ts_code,ann_date,end_date,holder_name,hold_amount", 
-				"code,year,week", 
+				"code,year,quarter", 
 				conditions,
 				null,
 				new Function<Map<String, Object>, List<Map<String, Object>>>() {
@@ -63,28 +63,24 @@ public class SecuritiesDailyShareHoldersTask extends AbstractSecuritiesCodesIter
 						String tsCode = LangUtil.convert(paramT.get("ts_code"), String.class);
 						String code = tsCode.split("\\.")[0];
 						
-						long year = DateUtil.getYear(today);
-						long week = DateUtil.getWeekOfYear(today);
+						String sEndDate = LangUtil.convert(paramT.get("end_date"), String.class);
+						Date endDate = DateUtil.getDate(sEndDate, DateUtil.DAY_FORMATTER_2);
+						long year = DateUtil.getYear(endDate);
+						long quater = DateUtil.getQuarterOfYear(endDate);
 						
-						String tradeDate = DateUtil.getDate(today, DateUtil.DAY_FORMATTER_1);
-						
-						/*
 						paramT.put("code", code);
 						paramT.put("year", year);
-						paramT.put("week", week);
-						paramT.put("trade_date", tradeDate);
-						paramT.put("ts_pe_ttm", paramT.get("pe_ttm"));
-						*/
-						System.out.println(JSON.toJSONString(paramT));
-						
-						return new ArrayList<>();
+						paramT.put("quarter", quater);
+
+						//System.out.println(JSON.toJSONString(paramT));
+						return Lists.newArrayList(paramT);
 					}
 					
 				},
 				new Function<String, String>() {
 					@Override
 					public String apply(String t) {
-						return "securities_weekly";
+						return "securities_quarterly_holders";
 					}
 				}
 				,parallel
