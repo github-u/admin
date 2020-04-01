@@ -39,7 +39,7 @@ public class SecuritiesDailyShareHoldersTask extends AbstractSecuritiesCodesIter
 		
 		Date today = new Date(); 
 		
-		LocalDateTime from = LocalDateTime.ofInstant(today.toInstant(), ZoneId.systemDefault()).minusMonths(3);
+		LocalDateTime from = LocalDateTime.ofInstant(today.toInstant(), ZoneId.systemDefault()).minusMonths(6);
 		LocalDateTime to = LocalDateTime.ofInstant(today.toInstant(), ZoneId.systemDefault());
 		
 		Map<String, Object> conditions = Maps.newHashMap();
