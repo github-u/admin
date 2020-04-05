@@ -338,8 +338,8 @@ public class SecuritiesServiceImpl implements SecuritiesService {
 							try {
 								return postSourceProcessor.apply(oneSecuritiesTuple).stream();
 							}catch(Exception e) {
-								logger.error("title=" + "SecuritiesService"
-										+ "$mode=" + "getBatch"
+								logger.error("title=" + "SecuritiesServiceImpl"
+										+ "$mode=" + "postSourceProcess"
 										+ "$errCode=" + ResultCode.GET_BATCH_POST_SOURCE_TRRANSFER_EXCEPTION
 										+ "$table=" + tableName
 										+ "$code=" + getSecuritiesCode(oneSecuritiesTuple) 

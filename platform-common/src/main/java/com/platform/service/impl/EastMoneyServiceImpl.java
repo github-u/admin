@@ -266,7 +266,11 @@ public class EastMoneyServiceImpl implements EastMoneyService, SourceService {
         	JSONObject jsonEastMoneyResult = (JSONObject) obj;
             JSONObject jsonEastMoneyData = jsonEastMoneyResult.getJSONObject("data");
             
-            return ret.success(jsonEastMoneyData);
+            if(jsonEastMoneyData != null) {
+            	return ret.success(jsonEastMoneyData);
+            }else {
+            	return ret.success(jsonEastMoneyResult);
+            }
         }
         
         if(obj instanceof JSONArray) {
