@@ -17,11 +17,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
+import com.platform.service.DataService;
 import com.platform.service.SecuritiesService;
 import com.platform.service.impl.SourceService.Source;
 import com.platform.utils.DateUtil;
 import com.platform.utils.LangUtil;
 import com.platform.utils.SecuritiesUtils;
+
+import lombok.Setter;
 
 @Component
 public class SecuritiesEastMoneyDailyShareHoldersTask extends AbstractSecuritiesCodesIteratorTask{
@@ -30,6 +33,9 @@ public class SecuritiesEastMoneyDailyShareHoldersTask extends AbstractSecurities
 	
 	@Resource
 	private SecuritiesService securitiesService;
+	
+	@Resource @Setter
+	private DataService dataService; 
 	
 	@Override
 	public ResultSupport<String> process(String securitiesCode, SimpleTaskParam taskParam, Map<String, String> argMap) {
@@ -69,25 +75,39 @@ public class SecuritiesEastMoneyDailyShareHoldersTask extends AbstractSecurities
 						.flatMap(oneQuarter ->{
 							List<Map<String, Object>> oneQuarterShareHolder = (List<Map<String, Object>>) oneQuarter.get("sdltgd");
 							
-							return oneQuarterShareHolder.stream().map(oneShareHolder ->{
-								Map<String, Object> oneShareHolderTuple = Maps.newHashMap();
-								
-								Date quarterEndDay = DateUtil.getDate(LangUtil.safeString(oneQuarter.get("rq")), DateUtil.DAY_FORMATTER_1);
-								long year = DateUtil.getYear(quarterEndDay);
-								long quarter = DateUtil.getQuarterOfYear(quarterEndDay);
-								String code = securitiesCode;
-								String holder_name = LangUtil.safeString(oneShareHolder.get("gdmc"));
-								BigDecimal holder_amount = new BigDecimal(LangUtil.safeString(oneShareHolder.get("cgs")).replace(",", ""));
-								
-								oneShareHolderTuple.put("code", code);
-								oneShareHolderTuple.put("year", year);
-								oneShareHolderTuple.put("quarter", quarter);
-								oneShareHolderTuple.put("end_date", quarterEndDay);
-								oneShareHolderTuple.put("holder_name", holder_name);
-								oneShareHolderTuple.put("holder_amount", holder_amount);
-								
-								return oneShareHolderTuple;
-							});
+							return oneQuarterShareHolder.stream()
+									.map(oneShareHolder ->{
+										Map<String, Object> oneShareHolderTuple = Maps.newHashMap();
+
+										Date quarterEndDay = DateUtil.getDate(LangUtil.safeString(oneQuarter.get("rq")), DateUtil.DAY_FORMATTER_1);
+										long year = DateUtil.getYear(quarterEndDay);
+										long quarter = DateUtil.getQuarterOfYear(quarterEndDay);
+										String code = securitiesCode;
+										String holder_name = LangUtil.safeString(oneShareHolder.get("gdmc"));
+										BigDecimal holder_amount = new BigDecimal(LangUtil.safeString(oneShareHolder.get("cgs")).replace(",", ""));
+
+										oneShareHolderTuple.put("code", code);
+										oneShareHolderTuple.put("year", year);
+										oneShareHolderTuple.put("quarter", quarter);
+										oneShareHolderTuple.put("anna_date", quarterEndDay);
+										oneShareHolderTuple.put("end_date", quarterEndDay);
+										oneShareHolderTuple.put("holder_name", holder_name);
+										oneShareHolderTuple.put("holder_amount", holder_amount);
+
+										Map<String, Object> selectParams = Maps.newHashMap();
+										selectParams.put("code", code);
+										selectParams.put("year", year);
+										selectParams.put("quarter", quarter);
+										selectParams.put("holder_name", holder_name);
+
+										ResultSupport<List<Map<String, Object>>> selectRet = dataService.select("securities_quarterly_holders", selectParams);
+										if(selectRet.isSuccess() && selectRet.getModel().size() > 0) {
+											return null;
+										}
+
+										return oneShareHolderTuple;
+									})
+									.filter(oneShareHolderTuple -> oneShareHolderTuple != null);
 
 						})
 						.collect(Collectors.toList());
@@ -112,7 +132,4 @@ public class SecuritiesEastMoneyDailyShareHoldersTask extends AbstractSecurities
 		
 	}
 	
-	public static void main(String[] args) {
-		System.out.println(new BigDecimal("3,242,810,791"));
-	}
 }
