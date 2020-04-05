@@ -92,7 +92,7 @@ public class SecuritiesEastMoneyDailyShareHoldersTask extends AbstractSecurities
 										oneShareHolderTuple.put("ann_date", quarterEndDay);
 										oneShareHolderTuple.put("end_date", quarterEndDay);
 										oneShareHolderTuple.put("holder_name", holder_name);
-										oneShareHolderTuple.put("holder_amount", holder_amount);
+										oneShareHolderTuple.put("hold_amount", holder_amount);
 
 										Map<String, Object> selectParams = Maps.newHashMap();
 										selectParams.put("code", code);
