@@ -89,7 +89,7 @@ public class SecuritiesEastMoneyDailyShareHoldersTask extends AbstractSecurities
 										oneShareHolderTuple.put("code", code);
 										oneShareHolderTuple.put("year", year);
 										oneShareHolderTuple.put("quarter", quarter);
-										oneShareHolderTuple.put("anna_date", quarterEndDay);
+										oneShareHolderTuple.put("ann_date", quarterEndDay);
 										oneShareHolderTuple.put("end_date", quarterEndDay);
 										oneShareHolderTuple.put("holder_name", holder_name);
 										oneShareHolderTuple.put("holder_amount", holder_amount);
