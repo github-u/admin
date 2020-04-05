@@ -16,13 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.platform.entity.ResultSupport;
 import com.platform.jobx.domain.SimpleTaskParam;
-import com.platform.service.EastMoneyService;
 import com.platform.service.SecuritiesService;
 import com.platform.service.impl.SourceService;
 import com.platform.service.impl.SourceService.Source;
@@ -81,7 +79,8 @@ public class SecuritiesQuarterlyEastMoneyProfitReRunTask extends AbstractSecurit
 						//扣除非经常性损益后净利润 Net profit after deducting non-recurring gains and losses
 							
 						for(Object obj : jsonArray) {
-							Map<String, Object> jsonObject = (Map) obj;
+							@SuppressWarnings("unchecked")
+							Map<String, Object> jsonObject = (Map<String, Object>) obj;
 							
 							String reportDateTime = LangUtil.safeString(jsonObject.get("REPORTDATE"));
 							String reportDate = reportDateTime.split(" ")[0];

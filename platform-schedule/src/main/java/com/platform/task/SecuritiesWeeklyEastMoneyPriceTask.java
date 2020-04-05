@@ -16,6 +16,7 @@ import com.platform.jobx.domain.SimpleTaskParam;
 import com.platform.service.SecuritiesService;
 import com.platform.service.impl.SourceService.Source;
 import com.platform.utils.DateUtil;
+import com.platform.utils.EastMoneyUtils;
 import com.platform.utils.LangUtil;
 import com.platform.utils.SecuritiesUtils;
 
@@ -52,7 +53,14 @@ public class SecuritiesWeeklyEastMoneyPriceTask extends AbstractSecuritiesCodesI
 				"", 
 				"code,year,week", 
 				conditions,
-				null,
+				new Function<String, String>(){
+
+					@Override
+					public String apply(String paramT) {
+						return EastMoneyUtils.getKlinesURLPath();
+					}
+					
+				},
 				new Function<Map<String, Object>, List<Map<String, Object>>>() {
 
 					@Override
