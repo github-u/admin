@@ -85,8 +85,8 @@ public class PageController {
                 return;
             }
             
-            ResultSupport<MySqlCreateTableStatement> getSQLStatemenRet = sqlService.getSQLStatement(tableName);
-            
+            //dataService.get
+            ResultSupport<MySqlCreateTableStatement> getSQLStatemenRet = ((DataServiceImpl)dataService).getSqlService().getSQLStatement(tableName);
             ConsoleUtil.print(addCorsHeaders(request, response), getSQLStatemenRet);
             
         }catch(Exception e) {
