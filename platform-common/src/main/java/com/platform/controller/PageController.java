@@ -1,7 +1,10 @@
 package com.platform.controller;
 
+import com.alibaba.druid.sql.ast.statement.SQLColumnDefinition;
+import com.alibaba.druid.sql.ast.statement.SQLTableElement;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateTableStatement;
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.service.DataService;
@@ -11,6 +14,9 @@ import com.platform.service.impl.SQLServiceImpl;
 import com.platform.utils.ConsoleUtil;
 import com.platform.utils.LangUtil;
 import com.platform.utils.Pair;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Controller
 public class PageController {
@@ -48,8 +55,6 @@ public class PageController {
         public static final String ComponentName = "componentName"; 
         
         public static final String Meta = "meta";
-        
-        
         
     }
     
@@ -79,15 +84,34 @@ public class PageController {
             //Map<String, Object> meta = Maps.newConcurrentMap();
             
             ResultSupport<Boolean> registeredSQLStatementRet = dataService.registeredSQLStatement(tableName);
-            
             if(!registeredSQLStatementRet.isSuccess()) {
                 ConsoleUtil.print(response, ret.fail(registeredSQLStatementRet.getErrCode(), registeredSQLStatementRet.getErrMsg()));
                 return;
             }
             
-            //dataService.get
             ResultSupport<MySqlCreateTableStatement> getSQLStatemenRet = ((DataServiceImpl)dataService).getSqlService().getSQLStatement(tableName);
-            ConsoleUtil.print(addCorsHeaders(request, response), getSQLStatemenRet);
+            if(!getSQLStatemenRet.isSuccess()) {
+                ConsoleUtil.print(response, ret.fail(getSQLStatemenRet.getErrCode(), getSQLStatemenRet.getErrMsg()));
+                return;
+            }
+            
+            List<FormItem> formItems = 
+                    getSQLStatemenRet.getModel().getTableElementList().stream().map(sqlTableElement ->{
+                        if(sqlTableElement instanceof SQLColumnDefinition) {
+                            String name = ((SQLColumnDefinition) sqlTableElement).getNameAsString();
+                            String label = ((SQLColumnDefinition) sqlTableElement).getNameAsString();
+                            return new FormItem(name, label);
+                        }else {
+                            return null;
+                        }
+                    })
+                    .filter(formItem -> formItem != null)
+                    .collect(Collectors.toList());
+            
+            Map<String, Object> meta = Maps.newHashMap();
+            meta.put("meta", new TableMeta(new Form(formItems)));
+            
+            ConsoleUtil.print(addCorsHeaders(request, response), meta);
             
         }catch(Exception e) {
             logger.error("title=" + "PageController"
@@ -189,5 +213,34 @@ public class PageController {
         System.out.println(obj);
         
     }
+    
+    public static class AbstractMeta{
+        
+    }
+    
+    public static final class TableMeta extends AbstractMeta{
+        @Getter @Setter private Form form;
+        public TableMeta(Form form) {
+            this.form = form;
+        }
+    }
+    
+    public static final class Form{
+        @Getter @Setter private List<FormItem> formItems = Lists.newArrayList();
+        public Form(List<FormItem> formItems){
+            this.formItems = formItems;
+        }
+    }
+    
+    public static final class FormItem{
+        @Getter @Setter private String prop;
+        @Getter @Setter private String label;
+        
+        public FormItem(String prop, String label) {
+            this.prop = prop;
+            this.label = label;
+        }
+    }
+    
     
 }
