@@ -150,6 +150,16 @@ public class PageController {
         }
     }
     
+    @RequestMapping(value = "/meta/table", method = RequestMethod.GET)
+    public Map<String, Object> table(HttpServletRequest request,
+            HttpServletResponse response) throws ServletException, IOException {
+        Map<String, Object> map = Maps.newHashMap();
+        
+        map.put("title", "this is title");
+        
+        return map;
+    }
+    
     private Map<String, String> params(HttpServletRequest request){
         
         Map<String, String> ret = Maps.newLinkedHashMap();
