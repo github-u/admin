@@ -98,8 +98,8 @@ public class PageController {
             List<FormItem> formItems = 
                     getSQLStatemenRet.getModel().getTableElementList().stream().map(sqlTableElement ->{
                         if(sqlTableElement instanceof SQLColumnDefinition) {
-                            String name = ((SQLColumnDefinition) sqlTableElement).getNameAsString();
-                            String label = ((SQLColumnDefinition) sqlTableElement).getNameAsString();
+                            String name = ((SQLColumnDefinition) sqlTableElement).getName().getSimpleName();
+                            String label = ((SQLColumnDefinition) sqlTableElement).getName().getSimpleName();
                             return new FormItem(name, label);
                         }else {
                             return null;
