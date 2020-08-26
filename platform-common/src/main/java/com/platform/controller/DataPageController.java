@@ -26,13 +26,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collector;
 
 //@Controller
-public class PageController {
+public class DataPageController {
     
     private DataService dataService;
     
     private AtomicBoolean inited = new AtomicBoolean(false);
     
-    private static Logger logger = LoggerFactory.getLogger(PageController.class);
+    private static Logger logger = LoggerFactory.getLogger(DataPageController.class);
     
     public static class Constants{
         
@@ -42,7 +42,7 @@ public class PageController {
         
     }
     
-    public PageController() throws Exception {
+    public DataPageController() throws Exception {
         init();
     }
     
