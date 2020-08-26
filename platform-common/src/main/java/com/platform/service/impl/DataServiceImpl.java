@@ -350,7 +350,7 @@ public class DataServiceImpl implements DataService {
         return ret.success(model);
     }
     
-    private ResultSupport<Boolean> registeredSQLStatement(String tableName) {
+    public ResultSupport<Boolean> registeredSQLStatement(String tableName) {
         
         ResultSupport<Boolean> ret = new ResultSupport<Boolean> ();
         

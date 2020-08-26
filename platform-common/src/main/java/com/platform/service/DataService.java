@@ -9,6 +9,8 @@ import com.platform.entity.ResultSupport;
 
 public interface DataService {
     
+    ResultSupport<Boolean> registeredSQLStatement(String tableName);
+    
     ResultSupport<List<Map<String, Object>>> select(String tableName, Map<String, Object> selectParams);
     
     ResultSupport<Long> update(String tableName, Map<String, Object> updateParams);

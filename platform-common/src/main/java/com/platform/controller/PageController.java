@@ -1,10 +1,13 @@
 package com.platform.controller;
 
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateTableStatement;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.platform.entity.ResultSupport;
 import com.platform.service.DataService;
+import com.platform.service.SQLService;
 import com.platform.service.impl.DataServiceImpl;
+import com.platform.service.impl.SQLServiceImpl;
 import com.platform.utils.ConsoleUtil;
 import com.platform.utils.LangUtil;
 import com.platform.utils.Pair;
@@ -30,6 +33,8 @@ public class PageController {
     
     private DataService dataService;
     
+    private SQLService sqlService;
+    
     private AtomicBoolean inited = new AtomicBoolean(false);
     
     private static Logger logger = LoggerFactory.getLogger(PageController.class);
@@ -39,6 +44,12 @@ public class PageController {
         public static final String TableName = "tableName";
         
         public static final String Condition = "condition";
+        
+        public static final String ComponentName = "componentName"; 
+        
+        public static final String Meta = "meta";
+        
+        
         
     }
     
@@ -55,8 +66,37 @@ public class PageController {
     }
     
     @RequestMapping(value = "/meta", method = RequestMethod.GET)
-    public void meta(HttpServletResponse response) throws ServletException, IOException {
+    public void meta(HttpServletRequest request,
+            HttpServletResponse response) throws ServletException, IOException {
+        ResultSupport<List<Map<String, Object>>> ret = new ResultSupport<List<Map<String, Object>>>();
         
+        try {
+            Map<String, String> params = params(request);
+            
+            //String componentName = LangUtil.convert(params.get(Constants.ComponentName), String.class);
+            String tableName = LangUtil.convert(params.get(Constants.TableName), String.class);
+            
+            //Map<String, Object> meta = Maps.newConcurrentMap();
+            
+            ResultSupport<Boolean> registeredSQLStatementRet = dataService.registeredSQLStatement(tableName);
+            
+            if(!registeredSQLStatementRet.isSuccess()) {
+                ConsoleUtil.print(response, ret.fail(registeredSQLStatementRet.getErrCode(), registeredSQLStatementRet.getErrMsg()));
+                return;
+            }
+            
+            ResultSupport<MySqlCreateTableStatement> getSQLStatemenRet = sqlService.getSQLStatement(tableName);
+            
+            ConsoleUtil.print(addCorsHeaders(request, response), getSQLStatemenRet);
+            
+        }catch(Exception e) {
+            logger.error("title=" + "PageController"
+                        + "$mode=" + PageControllerMode.Data
+                        + "$errCode=" + PageControllerResultCode.GetDataException
+                        + "$errMsg=" + "", e);
+            
+            ConsoleUtil.print(response, ret.fail(PageControllerResultCode.GetDataException, e.getMessage()));
+        }
     }
     
     @RequestMapping(value = "/data", method = RequestMethod.GET)
@@ -134,8 +174,12 @@ public class PageController {
         if(inited.get()) {
             return;
         }
+        
         dataService = new DataServiceImpl();
         ((DataServiceImpl)dataService).init();
+        
+        sqlService = new SQLServiceImpl();
+        ((SQLServiceImpl)sqlService).init();
         
         inited.compareAndSet(false, true);
     }
