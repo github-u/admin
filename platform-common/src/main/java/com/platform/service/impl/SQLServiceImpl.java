@@ -455,7 +455,7 @@ public class SQLServiceImpl implements SQLService {
         System.out.println(Lists.newArrayList(m.values()));
         //testParseTest();
         
-        //selectTest();
+        selectTest();
         
         //updateTest();
         
@@ -491,12 +491,15 @@ public class SQLServiceImpl implements SQLService {
     //@Test
     public static void selectTest() throws Exception {
         String sql = "CREATE TABLE `sys_role` ("
+                
                 + "`role_id` bigint(20) NOT NULL AUTO_INCREMENT,"
+                + "`gmt_create` datetime DEFAULT NULL COMMENT '时间',"
                 +  "`role_name` varchar(100) DEFAULT NULL COMMENT '角色名称',"
                 +  "`remark` varchar(100) DEFAULT NULL COMMENT '备注',"
                 +  "`create_user_id` bigint(20) DEFAULT NULL COMMENT '创建者ID',"
                 +  "`create_time` datetime DEFAULT NULL COMMENT '创建时间',"
                 +  "`dept_id` bigint(20) DEFAULT NULL COMMENT '部门ID',"
+                +  "`version` bigint(20) DEFAULT NULL COMMENT '版本',"
                 +  "PRIMARY KEY (`role_id`)"
                 +  ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='角色'";
         
