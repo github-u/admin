@@ -210,6 +210,26 @@
          <artifactId>pdfbox-tools</artifactId> 
          <version>2.0.0</version> 
       </dependency>
-      
+
+
+      <dependency>
+	<groupId>com.googlecode.aviator</groupId>
+	<artifactId>aviator</artifactId>
+	<version>5.1.4</version>
+      </dependency>
+
+      <dependency>
+	<groupId>org.javassist</groupId>
+	<artifactId>javassist</artifactId>
+	<version>3.27.0-GA</version>
+      </dependency>
+
+      <!-- https://mvnrepository.com/artifact/org.benf/cfr -->
+      <dependency>
+	<groupId>org.benf</groupId>
+	<artifactId>cfr</artifactId>
+	<version>0.150</version>
+      </dependency>
+
     </dependencies>
 </project>
