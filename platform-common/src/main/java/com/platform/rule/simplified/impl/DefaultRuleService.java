@@ -218,6 +218,26 @@ public class DefaultRuleService implements SimplifiedRuleService<Map<String, Obj
                     && simplifiedDecision.getDecisionCode().equals("SampleDecition"));
         }
         
+        //TC3 execute
+        @Test
+        public void _6_test_execute_rt() {
+            SimplifiedCondition simplifiedCondition = new DefaultSimplifiedCondition("SampleCondition");
+            ResultSupport<Pair<ResultSupport<Map<String, Object>>, SimplifiedDecision>> executeRet = null;
+            for(int i=0; i<10000; i++) {
+                executeRet = simplifiedRuleService.execute(simplifiedCondition);
+            }
+            Preconditions.checkArgument(executeRet.isSuccess());
+            Preconditions.checkArgument(executeRet.getModel() != null);
+            
+            ResultSupport<Map<String, Object>> executeResult = executeRet.getModel().fst;
+            SimplifiedDecision simplifiedDecision = executeRet.getModel().snd;
+            
+            Preconditions.checkArgument(executeResult != null && executeResult.isSuccess());
+            Preconditions.checkArgument(simplifiedDecision != null 
+                    && simplifiedDecision.getExecutorType().equals("code^group")
+                    && simplifiedDecision.getDecisionCode().equals("SampleDecition"));
+        }
+        
         private String rule1Expression() {
             return 
                     "if(\"SampleCondition\".equals(((com.platform.rule.simplified.SimplifiedCondition)$1.get(\"condition\")).getConditionCode())) {\n" +
