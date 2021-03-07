@@ -2,15 +2,116 @@ package com.platform.utils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import lombok.Getter;
 import lombok.Setter;
 
 public class GenericsUtil {
     
-    private static Map<CacheKey, Class<?>> cache = new ConcurrentHashMap<CacheKey, Class<?>>();
+    private static Map<CacheKey, Class<?>> cache1 = new ConcurrentHashMap<CacheKey, Class<?>>();
+    
+    private static Map<CacheKey, Class<?>> cache2 = new ConcurrentHashMap<CacheKey, Class<?>>();
+    
+    public static Class<?> findGenericClass(Class<?> instantiatedClazz, Class<?> xAxis, int yAxis) {
+         
+         Class<?> ret = null;
+         
+         if((ret = cache2.get(new CacheKey(instantiatedClazz, yAxis, xAxis))) != null) {
+             return ret;
+         }else {
+             ret = findGenericClassWithoutCache(instantiatedClazz, yAxis, xAxis);
+             if(ret != null) {
+                 cache2.put(new CacheKey(instantiatedClazz, yAxis, xAxis), ret);
+                 return ret;
+             }else {
+                 return null;
+             }
+         }
+     }
+    
+    /**
+     * @param 
+     */
+    @SuppressWarnings("rawtypes")
+    public static Class<?> findGenericClassWithoutCache(Class<?> instantiatedClazz, Class<?> xAxis, int yAxis) {
+        Preconditions.checkArgument(instantiatedClazz != null);
+        Preconditions.checkArgument(xAxis != null);
+        Preconditions.checkArgument(yAxis >= 0);
+        Preconditions.checkArgument(xAxis.isAssignableFrom(instantiatedClazz));
+        Preconditions.checkArgument(!instantiatedClazz.isInterface());
+        Preconditions.checkArgument(!xAxis.isInterface());
+        Preconditions.checkArgument(!instantiatedClazz.equals(xAxis));
+        TypeVariable<?>[] instantiatedClazzTypeParameters = instantiatedClazz.getTypeParameters();
+        for(Type instantiatedClazzTypeParameter : instantiatedClazzTypeParameters) {
+            Preconditions.checkArgument(
+                    (instantiatedClazzTypeParameter instanceof Class) 
+                    || 
+                    (instantiatedClazzTypeParameter instanceof ParameterizedType)
+                    );
+        }
+        
+        Map<Class<?>, List<Class<?>>> actualTypes4Class = Maps.newLinkedHashMap();
+        Map<String, Class> typeVariablesBuffer = Maps.newLinkedHashMap();
+        for(Class<?> tClass = instantiatedClazz; !tClass.equals(xAxis); tClass = tClass.getSuperclass()) {
+            Class<?> superClass = tClass.getSuperclass();
+            
+            Type type = tClass.getGenericSuperclass();
+            if(!(type instanceof ParameterizedType)) {
+                actualTypes4Class.put(superClass, Lists.newArrayList());
+            }
+            
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            TypeVariable<?>[] typeParameters = superClass.getTypeParameters();
+            
+            Preconditions.checkArgument(actualTypeArguments.length == typeParameters.length);
+            
+            List<Class<?>> actualTypes = Lists.newArrayList();
+            for(Type actualTypeArgument : actualTypeArguments) {
+                if(actualTypeArgument instanceof Class) {
+                    actualTypes.add((Class<?>) actualTypeArgument);
+                }else if(actualTypeArgument instanceof ParameterizedType){
+                    Type actualTypeArgumentType = ((ParameterizedType) actualTypeArgument).getRawType();
+                    if(actualTypeArgumentType instanceof Class) {
+                        actualTypes.add((Class<?>) actualTypeArgumentType);
+                    }else {
+                        throw new RuntimeException("Can not find rawclass of ParameterizedType, type is " + actualTypeArgument.getTypeName());
+                    }
+                }else if(actualTypeArgument instanceof TypeVariable){
+                    Class<?> typeVariableCalss = typeVariablesBuffer.get(((TypeVariable)actualTypeArgument).getName());
+                    Preconditions.checkNotNull(typeVariableCalss);
+                    actualTypes.add(typeVariableCalss);
+                }else {
+                    throw new RuntimeException("Can not recognize actualTypeArgument , type is " + actualTypeArgument);
+                }
+            }
+            
+            for(int i=0; i< typeParameters.length; i++) {
+                TypeVariable typeParameter = typeParameters[i];
+                if(typeParameter instanceof TypeVariable) {
+                    typeVariablesBuffer.put(typeParameter.getName(), actualTypes.get(i));
+                }
+            }
+            
+            actualTypes4Class.put(superClass, actualTypes);
+        }
+        
+        if(yAxis < actualTypes4Class.get(xAxis).size()) {
+            return actualTypes4Class.get(xAxis).get(yAxis);
+        }else {
+            return null;
+        }
+        
+    }
+    
     
     /**
      * @param index, 0 based
@@ -23,12 +124,12 @@ public class GenericsUtil {
          
          Class<?> ret = null;
          
-         if((ret = cache.get(new CacheKey(clz, index, root))) != null) {
+         if((ret = cache1.get(new CacheKey(clz, index, root))) != null) {
              return ret;
          }else {
              ret = findGenericClassWithoutCache(clz, index, root);
              if(ret != null) {
-                 cache.put(new CacheKey(clz, index, root), ret);
+                 cache1.put(new CacheKey(clz, index, root), ret);
                  return ret;
              }else {
                  return null;
@@ -217,17 +318,33 @@ public class GenericsUtil {
      
      public class C2 implements IB{}
      
-     public class C3 extends A<Integer, Long, Map<String, Object>>{}
+     public class C3<AnnoC3> extends A<Integer, Long, Map<String, Object>>{}
+     
+     public class C4 extends C3<Boolean>{}
      
      public static void main(String[] args) {
          
-         testFindSuperClass();
+         //testFindSuperClass();
          
-         testFindInterfaces();
+         //testFindInterfaces();
          
-         testFindSuperClassWithParameterType();
+         //testFindSuperClassWithParameterType();
+         
+         testFindSuperClassNew();
+         
+         testFindSuperClassNewCache();
          
      }
+     
+     public static void testFindSuperClassNewCache(){
+         System.out.println(GenericsUtil.findGenericClass(C4.class, A.class, 2));
+         System.out.println(GenericsUtil.findGenericClass(C4.class, A.class, 2));
+     }
+     
+     public static void testFindSuperClassNew(){
+         System.out.println(GenericsUtil.findGenericClassWithoutCache(C4.class, A.class, 2));
+     }
+     
      public static void testFindSuperClass() {
          
          Class<?> clz = findGenericClass(C1.class, 2, IA.class);
@@ -262,12 +379,12 @@ public class GenericsUtil {
          System.out.println(c1.equals(c3));
          System.out.println(c1.equals(c4));
          
-         cache.put(c1, Object.class);
-         cache.put(c2, Object.class);
-         cache.put(c3, Object.class);
-         cache.put(c4, Object.class);
+         cache1.put(c1, Object.class);
+         cache1.put(c2, Object.class);
+         cache1.put(c3, Object.class);
+         cache1.put(c4, Object.class);
          
-         System.out.println(cache);
+         System.out.println(cache1);
          
      }
      
