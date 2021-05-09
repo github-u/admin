@@ -267,4 +267,5 @@ public class DefaultRuleService implements SimplifiedRuleService<Map<String, Obj
                 "                return null;\n" +
                 "            }";
     }
+    
 }
