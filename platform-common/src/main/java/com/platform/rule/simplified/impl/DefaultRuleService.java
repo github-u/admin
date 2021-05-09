@@ -3,10 +3,10 @@ package com.platform.rule.simplified.impl;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+//import org.junit.BeforeClass;
+//import org.junit.FixMethodOrder;
+//import org.junit.Test;
+//import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,12 +159,12 @@ public class DefaultRuleService implements SimplifiedRuleService<Map<String, Obj
         }
     }
     
-    @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+    //@FixMethodOrder(MethodSorters.NAME_ASCENDING)
     public static class TC{
         
         private static SimplifiedRuleService<Map<String, Object>> simplifiedRuleService;
         
-        @BeforeClass
+        //@BeforeClass
         public static void init() {
             if(simplifiedRuleService == null) {
                 SimpleRuleEngine simpleRuleEngine = new DefaultRuleEngine();
@@ -174,35 +174,35 @@ public class DefaultRuleService implements SimplifiedRuleService<Map<String, Obj
         }
         
         //TC1 register rule
-        @Test
+        //@Test
         public void _1_test_registerRule() {
             SimplifiedRule simplifiedRule = new DefaultSimplifiedRule(rule1Expression(), "code", "group", "");
             Preconditions.checkArgument(simplifiedRuleService.registerRule(simplifiedRule));
         }
         
         //TC1 register rule
-        @Test
+        //@Test
         public void _2_test_registerRule() {
             SimplifiedRule simplifiedRule = new DefaultSimplifiedRule(rule1Expression(), "code", "group", "");
             Preconditions.checkArgument(!simplifiedRuleService.registerRule(simplifiedRule));
         }
         
         //TC2 register rule executor
-        @Test
+        //@Test
         public void _3_test_registerRuleExecutor() {
             SimplifiedRuleExecutor<Map<String, Object>> exampleRuleExecutor = new ExampleRuleExecutor();
             Preconditions.checkArgument(simplifiedRuleService.registerRuleExecutor(exampleRuleExecutor));
         }
         
         //TC2 register rule executor
-        @Test
+        //@Test
         public void _4_test_registerRuleExecutor() {
             SimplifiedRuleExecutor<Map<String, Object>> exampleRuleExecutor = new ExampleRuleExecutor();
             Preconditions.checkArgument(!simplifiedRuleService.registerRuleExecutor(exampleRuleExecutor));
         }
         
         //TC3 execute
-        @Test
+        //@Test
         public void _5_test_execute() {
             SimplifiedCondition simplifiedCondition = new DefaultSimplifiedCondition("SampleCondition");
             ResultSupport<Pair<ResultSupport<Map<String, Object>>, SimplifiedDecision>> executeRet = simplifiedRuleService.execute(simplifiedCondition);
@@ -219,7 +219,7 @@ public class DefaultRuleService implements SimplifiedRuleService<Map<String, Obj
         }
         
         //TC3 execute
-        @Test
+        //@Test
         public void _6_test_execute_rt() {
             SimplifiedCondition simplifiedCondition = new DefaultSimplifiedCondition("SampleCondition");
             ResultSupport<Pair<ResultSupport<Map<String, Object>>, SimplifiedDecision>> executeRet = null;
