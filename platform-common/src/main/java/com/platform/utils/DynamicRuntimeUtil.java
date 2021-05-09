@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+//import org.junit.FixMethodOrder;
+//import org.junit.Test;
+//import org.junit.runners.MethodSorters;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -105,9 +105,9 @@ public class DynamicRuntimeUtil {
     }
     
     
-    @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+    //@FixMethodOrder(MethodSorters.NAME_ASCENDING)
     public static final class TestCase{
-        @Test
+        //@Test
         public void _1_testFramwork() throws Exception {
             Preconditions.checkArgument(
                     "hello world".equals(
@@ -120,7 +120,7 @@ public class DynamicRuntimeUtil {
             ;
         }
         
-        @Test
+        //@Test
         public void _2_testRegisterScript() throws Exception {
             
             String scriptName = "2";
@@ -137,7 +137,7 @@ public class DynamicRuntimeUtil {
             
         }
         
-        @Test
+        //@Test
         public void _3_testGetDynamicClassInstance() throws Exception {
             
             String scriptName = "3";
@@ -164,7 +164,7 @@ public class DynamicRuntimeUtil {
             
         }
         
-        @Test
+        //@Test
         public void _4_testContext_getMethod() throws Exception {
             
             String scriptName = "4";
@@ -182,7 +182,7 @@ public class DynamicRuntimeUtil {
             
         }
         
-        @Test
+        //@Test
         public void _5_testContext_setMethod() throws Exception {
             
             String scriptName = "5";

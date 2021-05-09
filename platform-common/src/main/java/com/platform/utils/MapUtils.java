@@ -1,6 +1,6 @@
 package com.platform.utils;
 
-import org.apache.commons.beanutils.PropertyUtilsBean;
+//import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.util.Assert;
 
@@ -259,6 +259,7 @@ public class MapUtils {
      * @return
      */
     public static Map<String, Object> beanToMap(Object beanObj) {
+        /**
         Map<String, Object> params = new HashMap<String, Object>(0);
         try {
             PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
@@ -273,6 +274,8 @@ public class MapUtils {
             e.printStackTrace();
         }
         return params;
+         */
+        return null;
     }
 
     public static String convertMap2Xml(Map<Object, Object> paraMap) {
