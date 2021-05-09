@@ -3,6 +3,7 @@ package com.platform.utils;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,35 +21,15 @@ public class GenericsUtil {
     
     private static Map<CacheKey, Class<?>> cache2 = new ConcurrentHashMap<CacheKey, Class<?>>();
     
-    public static Class<?> findGenericClass(Class<?> instantiatedClazz, Class<?> xAxis, int yAxis) {
-         
-         Class<?> ret = null;
-         
-         if((ret = cache2.get(new CacheKey(instantiatedClazz, yAxis, xAxis))) != null) {
-             return ret;
-         }else {
-             ret = findGenericClassWithoutCache(instantiatedClazz, yAxis, xAxis);
-             if(ret != null) {
-                 cache2.put(new CacheKey(instantiatedClazz, yAxis, xAxis), ret);
-                 return ret;
-             }else {
-                 return null;
-             }
-         }
-     }
-    
-    /**
-     * @param 
-     */
-    @SuppressWarnings("rawtypes")
     public static Class<?> findGenericClassWithoutCache(Class<?> instantiatedClazz, Class<?> xAxis, int yAxis) {
+        
         Preconditions.checkArgument(instantiatedClazz != null);
         Preconditions.checkArgument(xAxis != null);
         Preconditions.checkArgument(yAxis >= 0);
-        Preconditions.checkArgument(xAxis.isAssignableFrom(instantiatedClazz));
-        Preconditions.checkArgument(!instantiatedClazz.isInterface());
-        Preconditions.checkArgument(!xAxis.isInterface());
         Preconditions.checkArgument(!instantiatedClazz.equals(xAxis));
+        
+        List<Class> extendsAndImplementsChain = findOneExtendsAndImplementsChain(instantiatedClazz, xAxis);
+        
         TypeVariable<?>[] instantiatedClazzTypeParameters = instantiatedClazz.getTypeParameters();
         for(Type instantiatedClazzTypeParameter : instantiatedClazzTypeParameters) {
             Preconditions.checkArgument(
@@ -60,17 +41,41 @@ public class GenericsUtil {
         
         Map<Class<?>, List<Class<?>>> actualTypes4Class = Maps.newLinkedHashMap();
         Map<String, Class> typeVariablesBuffer = Maps.newLinkedHashMap();
-        for(Class<?> tClass = instantiatedClazz; !tClass.equals(xAxis); tClass = tClass.getSuperclass()) {
-            Class<?> superClass = tClass.getSuperclass();
+        
+        for(int i=extendsAndImplementsChain.size() -1 ; i>0; i--) {
+            //for(Class<?> tClass = instantiatedClazz; !tClass.equals(xAxis); tClass = tClass.getSuperclass()) {
+            Class<?> tClass = extendsAndImplementsChain.get(i);
+            Class<?> superClassOrInterface = extendsAndImplementsChain.get(i-1);
             
-            Type type = tClass.getGenericSuperclass();
+            Type type = null;
+            if(superClassOrInterface.isInterface()) {
+                Type[] types = tClass.getGenericInterfaces();
+                for(Type tType : types) {
+                    Class interfaceClz = null;
+                    if(tType instanceof Class) {
+                        interfaceClz = ((Class<?>) tType);
+                    }else if(tType instanceof ParameterizedType){
+                        interfaceClz = (Class) ((ParameterizedType) tType).getRawType();
+                    }else {
+                        throw new RuntimeException();
+                    }
+                    if(superClassOrInterface.equals(interfaceClz)) {
+                        type = tType;
+                        break;
+                    }
+                }
+            }else {
+                type = tClass.getGenericSuperclass();
+            }
+            
             if(!(type instanceof ParameterizedType)) {
-                actualTypes4Class.put(superClass, Lists.newArrayList());
+                actualTypes4Class.put(superClassOrInterface, Lists.newArrayList());
+                continue;
             }
             
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-            TypeVariable<?>[] typeParameters = superClass.getTypeParameters();
+            TypeVariable<?>[] typeParameters = superClassOrInterface.getTypeParameters();
             
             Preconditions.checkArgument(actualTypeArguments.length == typeParameters.length);
             
@@ -94,14 +99,15 @@ public class GenericsUtil {
                 }
             }
             
-            for(int i=0; i< typeParameters.length; i++) {
-                TypeVariable typeParameter = typeParameters[i];
+            for(int j=0; j< typeParameters.length; j++) {
+                TypeVariable typeParameter = typeParameters[j];
                 if(typeParameter instanceof TypeVariable) {
-                    typeVariablesBuffer.put(typeParameter.getName(), actualTypes.get(i));
+                    typeVariablesBuffer.put(typeParameter.getName(), actualTypes.get(j));
                 }
             }
             
-            actualTypes4Class.put(superClass, actualTypes);
+            actualTypes4Class.put(superClassOrInterface, actualTypes);
+            
         }
         
         if(yAxis < actualTypes4Class.get(xAxis).size()) {
@@ -109,9 +115,71 @@ public class GenericsUtil {
         }else {
             return null;
         }
-        
     }
     
+    @SuppressWarnings("unchecked")
+    public static List<Class> findOneExtendsAndImplementsChain(Class currentClz, Class targetClz){
+        
+        if(!targetClz.isAssignableFrom(currentClz)) {
+            return null;
+        }
+        else if(currentClz.equals(targetClz)) {
+            return Lists.newArrayList(currentClz);
+        }
+        else if(currentClz.isInterface()) {
+            return findOneInterfaceExtendsChain(currentClz, targetClz);
+        }else {
+            Class superClass = currentClz.getSuperclass();
+            List<Class> extendsAndImplementsChain = findOneExtendsAndImplementsChain(superClass, targetClz);
+            if(extendsAndImplementsChain != null) {
+                extendsAndImplementsChain.add(currentClz);
+                return extendsAndImplementsChain;
+            }
+
+            return findOneInterfaceExtendsChain(currentClz, targetClz);
+        }
+    }
+
+    public static List<Class> findOneInterfaceExtendsChain(Class currentClz, Class targetInterface){
+
+        Preconditions.checkArgument(targetInterface.isInterface());
+        if(currentClz.equals(targetInterface)) {
+            return Lists.newArrayList(currentClz);
+        }
+        
+        Class[] superInterfaces = currentClz.getInterfaces();
+        if(superInterfaces == null || superInterfaces.length == 0) {
+            return null;
+        }
+
+        for(int i=0; i<superInterfaces.length; i++) {
+            Class superInterface = superInterfaces[i];
+            List<Class> extendsInterfacesChain = findOneInterfaceExtendsChain(superInterface, targetInterface);
+            if(extendsInterfacesChain != null) {
+                extendsInterfacesChain.add(currentClz);
+                return extendsInterfacesChain;
+            }
+        }
+
+        return null;
+    }
+    
+    public static Class<?> findGenericClass(Class<?> instantiatedClazz, Class<?> xAxis, int yAxis) {
+         
+         Class<?> ret = null;
+         
+         if((ret = cache2.get(new CacheKey(instantiatedClazz, yAxis, xAxis))) != null) {
+             return ret;
+         }else {
+             ret = findGenericClassWithoutCache(instantiatedClazz, xAxis, yAxis);
+             if(ret != null) {
+                 cache2.put(new CacheKey(instantiatedClazz, yAxis, xAxis), ret);
+                 return ret;
+             }else {
+                 return null;
+             }
+         }
+     }
     
     /**
      * @param index, 0 based
@@ -334,6 +402,9 @@ public class GenericsUtil {
          
          testFindSuperClassNewCache();
          
+         //System.out.println(findOneExtendsAndImplementsChain(C4.class, IA.class));
+         
+         //System.out.println(findGenericClassWithoutCache2(C4.class, A.class, 2));
      }
      
      public static void testFindSuperClassNewCache(){

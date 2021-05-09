@@ -109,9 +109,13 @@ public class DateUtil {
 	public static List<Date> getWeekDays(int year, int week) {
 		List<Date> weekDays = Lists.newArrayList();
 		
-		Date fisrtDayOfYear = getDate(String.valueOf(year + "-01-01 00:00:00")); 
-		
-		LocalDateTime weekDateTime = LocalDateTime.ofInstant(fisrtDayOfYear.toInstant(), ZoneId.systemDefault()).plusWeeks(week - 1);
+		Date fisrtDayOfYear = getDate(String.valueOf(year + "-01-01 00:00:00"));
+
+		LocalDateTime fisrtDayOfYearDateTime = LocalDateTime.ofInstant(fisrtDayOfYear.toInstant(), ZoneId.systemDefault());
+		int weekOfFirstDay = fisrtDayOfYearDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+		int calibration = weekOfFirstDay != 1 ? 1 : 0;
+
+		LocalDateTime weekDateTime = LocalDateTime.ofInstant(fisrtDayOfYear.toInstant(), ZoneId.systemDefault()).plusWeeks(week - 1 + calibration);
 		
 		LocalDateTime firstDayOfWeekDateTime = weekDateTime.minusDays(weekDateTime.getDayOfWeek().getValue() - 1);
 		
