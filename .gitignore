@@ -31,3 +31,7 @@ hs_err_pid*
 */.settings/
 
 platform-common/velocity.log.1
+
+
+platform-mp/.classpath
+platform-mp/.project

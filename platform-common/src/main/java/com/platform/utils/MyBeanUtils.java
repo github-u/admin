@@ -3,7 +3,7 @@ package com.platform.utils;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.beanutils.DynaProperty;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.PropertyUtilsBean;
+//import org.apache.commons.beanutils.PropertyUtilsBean;
 
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
@@ -22,8 +22,8 @@ import java.util.*;
  * @version 1.0
  * @since 1.0.0
  */
-public class MyBeanUtils extends PropertyUtilsBean {
-
+public class MyBeanUtils {
+// extends PropertyUtilsBean
     /**
      * 主要功能:转换
      * 注意事项:无
@@ -54,7 +54,7 @@ public class MyBeanUtils extends PropertyUtilsBean {
                 if (PropertyUtils.isWriteable(dest, name)) {
                     Object value = ((DynaBean) orig).get(name);
                     try {
-                        getInstance().setSimpleProperty(dest, name, value);
+                        //getInstance().setSimpleProperty(dest, name, value);
                     } catch (Exception e) {
                         ; // Should not happen
                     }
@@ -68,7 +68,7 @@ public class MyBeanUtils extends PropertyUtilsBean {
                 if (PropertyUtils.isWriteable(dest, name)) {
                     Object value = ((Map) orig).get(name);
                     try {
-                        getInstance().setSimpleProperty(dest, name, value);
+                       // getInstance().setSimpleProperty(dest, name, value);
                     } catch (Exception e) {
                         ; // Should not happen
                     }
@@ -89,7 +89,7 @@ public class MyBeanUtils extends PropertyUtilsBean {
                     try {
                         Object value = PropertyUtils.getSimpleProperty(orig,
                                 name);
-                        getInstance().setSimpleProperty(dest, name, value);
+                       // getInstance().setSimpleProperty(dest, name, value);
                     } catch (IllegalArgumentException ie) {
                         ; // Should not happen
                     } catch (Exception e) {
@@ -126,7 +126,7 @@ public class MyBeanUtils extends PropertyUtilsBean {
                     Object value = PropertyUtils.getSimpleProperty(databean,
                             name);
                     if (value != null) {
-                        getInstance().setSimpleProperty(tobean, name, value);
+                       // getInstance().setSimpleProperty(tobean, name, value);
                     }
                 } catch (IllegalArgumentException ie) {
                     ; // Should not happen
@@ -261,7 +261,7 @@ public class MyBeanUtils extends PropertyUtilsBean {
                 }
 
                 // 属性赋值
-                getInstance().setSimpleProperty(bean, name, value);
+                //getInstance().setSimpleProperty(bean, name, value);
             } catch (Exception e) {
                 continue;
             }
@@ -315,7 +315,7 @@ public class MyBeanUtils extends PropertyUtilsBean {
                 // continue;
                 // }
                 // }
-                getInstance().setSimpleProperty(bean, name, value);
+                //getInstance().setSimpleProperty(bean, name, value);
             } catch (NoSuchMethodException e) {
                 continue;
             }
@@ -366,7 +366,7 @@ public class MyBeanUtils extends PropertyUtilsBean {
                         value = defaultValue;
                     }
                 }
-                getInstance().setSimpleProperty(bean, name, value);
+                //getInstance().setSimpleProperty(bean, name, value);
             } catch (NoSuchMethodException e) {
                 continue;
             }
